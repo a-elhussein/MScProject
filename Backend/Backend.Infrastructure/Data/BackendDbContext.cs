@@ -1,12 +1,13 @@
 using System;
-using Backend.API.Models;
 using Backend.API.WebUtility;
+using Backend.Core.Models;
+using Backend.Core.WebUtility;
 using Backend.Core.Models.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.API.Data;
+namespace Backend.Infrastructure.Data;
 
 public class BackendDbContext: IdentityDbContext<ApplicationUser, ApplicationRole, int>
 {

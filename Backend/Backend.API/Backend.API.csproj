@@ -26,11 +26,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Repositories\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Backend.Core\Backend.Core.csproj" />
+      <ProjectReference Include="..\Backend.Infrastructure\Backend.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

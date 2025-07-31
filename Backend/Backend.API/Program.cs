@@ -1,7 +1,11 @@
 using System.Text;
-using Backend.API.Data;
+using Backend.Infrastructure.Data;
 using Backend.API.Models;
+using Backend.Core.Auth;
 using Backend.Core.Models.Domain;
+using Backend.Core.Repositories;
+using Backend.Infrastructure.Data;
+using Backend.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +32,9 @@ builder.Services.AddIdentityCore<ApplicationUser>()
     .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("FoodLabelApp")
     .AddEntityFrameworkStores<BackendDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IUserRepository,UserRepository>();
+builder.Services.AddScoped<ITokenRepository,TokenRepository>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

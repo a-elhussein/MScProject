@@ -9,6 +9,7 @@
       "Backend.API/1.0.0": {
         "dependencies": {
           "Backend.Core": "1.0.0",
+          "Backend.Infrastructure": "1.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.0",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.0",
           "Microsoft.AspNetCore.OpenApi": "8.0.16",
@@ -851,6 +852,22 @@
             "fileVersion": "1.0.0.0"
           }
         }
+      },
+      "Backend.Infrastructure/1.0.0": {
+        "dependencies": {
+          "Backend.Core": "1.0.0",
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.0",
+          "Microsoft.EntityFrameworkCore": "9.0.1",
+          "Microsoft.IdentityModel.Tokens": "8.13.0",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.1",
+          "System.IdentityModel.Tokens.Jwt": "8.13.0"
+        },
+        "runtime": {
+          "Backend.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -1309,6 +1326,11 @@
       "hashPath": "system.threading.channels.7.0.0.nupkg.sha512"
     },
     "Backend.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Backend.Infrastructure/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

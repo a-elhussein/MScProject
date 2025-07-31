@@ -144,3 +144,6 @@
 /Users/ahmed/Desktop/FoodLabelApp/Backend/Backend.API/obj/Debug/net8.0/ref/Backend.API.dll
 /Users/ahmed/Desktop/FoodLabelApp/Backend/Backend.API/bin/Debug/net8.0/Backend.Core.dll
 /Users/ahmed/Desktop/FoodLabelApp/Backend/Backend.API/bin/Debug/net8.0/Backend.Core.pdb
+/Users/ahmed/Desktop/FoodLabelApp/Backend/Backend.API/obj/Debug/net8.0/Backend.API.sourcelink.json
+/Users/ahmed/Desktop/FoodLabelApp/Backend/Backend.API/bin/Debug/net8.0/Backend.Infrastructure.dll
+/Users/ahmed/Desktop/FoodLabelApp/Backend/Backend.API/bin/Debug/net8.0/Backend.Infrastructure.pdb
