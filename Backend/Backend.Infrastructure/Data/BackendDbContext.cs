@@ -15,7 +15,14 @@ public class BackendDbContext: IdentityDbContext<ApplicationUser, ApplicationRol
     {
         
     }
-
+    
+    public DbSet<UserProfile> UserProfile { get; set; }
+    public DbSet<MacroRecommendation> MacroRecommendation { get; set; }
+    public DbSet<Food> Food { get; set; }
+    public DbSet<Meal> Meal { get; set; }
+    public DbSet<MealItem> MealItem { get; set; }
+    
+    
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
