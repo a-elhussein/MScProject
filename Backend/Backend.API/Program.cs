@@ -64,6 +64,7 @@ builder.Services.AddIdentityCore<ApplicationUser>()
 builder.Services.AddScoped<IUserRepository,UserRepository>();
 builder.Services.AddScoped<ITokenRepository,TokenRepository>();
 builder.Services.AddScoped<IUserProfileRepository,UserProfileRepository>();
+builder.Services.AddScoped<IMacroRecommendationRepository,MacroRecommendationRepository>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

@@ -1,0 +1,140 @@
+using Backend.API.WebUtility;
+using Backend.Core.Models.Domain;
+using Backend.Core.Models.DTO;
+using Backend.Core.Repositories;
+using Backend.Core.WebUtility;
+using Backend.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace Backend.Infrastructure.Repositories;
+
+public class MacroRecommendationRepository: IMacroRecommendationRepository
+{
+    private readonly BackendDbContext _dbContext;
+
+    public MacroRecommendationRepository(BackendDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+    
+    public async Task<ApplicationResponseModel<MacroRecommendationResponseDto>> GenerateRecommendationAsync(int userId, MacroRecommendationRequestDto macroRecommendationRequestDto)
+    {
+        var userProfile = await _dbContext.UserProfile.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (userProfile == null)
+        {
+            return new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "User not found"
+            };
+        }
+        var day = macroRecommendationRequestDto.Day ?? DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var today = DateTime.Today;
+        var age = today.Year - userProfile.DateOfBirth.Year;
+        if (today < userProfile.DateOfBirth.ToDateTime(TimeOnly.MinValue).AddYears(age)) age--;
+
+        var bmrBase = 10 * (double)userProfile.WeightKg + 6.25 * userProfile.HeightCm - 5 * age;
+        var bmr = userProfile.Sex == Sex.Female ? bmrBase - 161 : bmrBase + 5;
+
+        double multiplier = userProfile.ActivityLevel switch
+        {
+            ActivityLevel.Sedentary => 1.2,
+            ActivityLevel.Light => 1.375,
+            ActivityLevel.Moderate => 1.55,
+            ActivityLevel.Active => 1.725,
+            ActivityLevel.Athlete => 1.9,
+            _ => 1.2
+        };
+        
+        int calories = (int)(bmrBase * multiplier);
+
+        if (userProfile.Goal == Goal.Cut) calories -= 500;
+        else if (userProfile.Goal == Goal.Bulk) calories += 500;
+
+        int protein = (int)((double)userProfile.WeightKg * 2.2);
+        int fat = (int)(calories * 0.25 / 9);
+        int carbs = (calories - (protein * 4 + fat * 9)) / 4;
+
+        var macro = new MacroRecommendation
+        {
+            UserId = userId,
+            Day = day,
+            CreatedAt = DateTime.UtcNow,
+            CaloriesKcal = calories,
+            ProteinG = protein,
+            CarbsG = carbs,
+            FatG = fat
+        };
+
+        _dbContext.MacroRecommendation.Add(macro);
+        await _dbContext.SaveChangesAsync();
+
+        var response = new MacroRecommendationResponseDto
+        {
+            Day = macro.Day.ToString("yyyy-MM-dd"),
+            CaloriesKcal = macro.CaloriesKcal,
+            ProteinG = macro.ProteinG,
+            CarbsG = macro.CarbsG,
+            FatG = macro.FatG,
+            CreatedAt = macro.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+        };
+
+        return new ApplicationResponseModel<MacroRecommendationResponseDto>
+        {
+            Data = response,
+            ErrorExist = false,
+            ErrorMessage = null
+        };
+    }
+
+    public async Task<ApplicationResponseModel<List<MacroRecommendationResponseDto>>> GetTrendsAsync(int userId)
+    {
+        // var trends = await _dbContext.MacroRecommendation
+        //     .Where(m => m.UserId == userId)
+        //     .GroupBy(m => m.Day)
+        //     .Select(g => g.OrderByDescending(m => m.CreatedAt).First())
+        //     .OrderBy(m => m.Day)
+        //     .Select(m => new MacroRecommendationResponseDto
+        //     {
+        //         Day = m.Day.ToString("yyyy-MM-dd"),
+        //         CaloriesKcal = m.CaloriesKcal,
+        //         ProteinG = m.ProteinG,
+        //         CarbsG = m.CarbsG,
+        //         FatG = m.FatG,
+        //         CreatedAt = m.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+        //     })
+        //     .ToListAsync();
+        //
+        // return new ApplicationResponseModel<List<MacroRecommendationResponseDto>>
+        // {
+        //     Data = trends,
+        //     ErrorExist = false
+        // };
+        var allRecommendations = await _dbContext.MacroRecommendation
+            .Where(m => m.UserId == userId)
+            .ToListAsync();
+
+        var latestPerDay = allRecommendations
+            .GroupBy(m => m.Day)
+            .Select(g => g.OrderByDescending(m => m.CreatedAt).First())
+            .OrderBy(m => m.Day)
+            .Select(m => new MacroRecommendationResponseDto
+            {
+                Day = m.Day.ToString("yyyy-MM-dd"),
+                CaloriesKcal = m.CaloriesKcal,
+                ProteinG = m.ProteinG,
+                CarbsG = m.CarbsG,
+                FatG = m.FatG
+            })
+            .ToList();
+
+        return new ApplicationResponseModel<List<MacroRecommendationResponseDto>>
+        {
+            Data = latestPerDay,
+            ErrorExist = false,
+            ErrorMessage = null
+        };
+    }
+}

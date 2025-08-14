@@ -13,4 +13,5 @@ public class UserProfileRequestDto
     [Required] public ActivityLevel ActivityLevel { get; set; }
     [Required] public Goal Goal { get; set; }
     [Required] public string TimeZone { get; set; }
+    [Required] public Sex Sex { get; set; }
 }

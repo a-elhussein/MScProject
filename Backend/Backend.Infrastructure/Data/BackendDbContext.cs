@@ -28,6 +28,11 @@ public class BackendDbContext: IdentityDbContext<ApplicationUser, ApplicationRol
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<MacroRecommendation>().HasOne(m => m.UserProfile).WithMany().HasForeignKey(m => m.UserId)
+            .HasPrincipalKey(u => u.UserId);
+        
+        
+
         var roles = new List<ApplicationRole>
         {
             new ApplicationRole

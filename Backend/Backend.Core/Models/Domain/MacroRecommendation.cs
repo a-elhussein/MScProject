@@ -13,4 +13,5 @@ public class MacroRecommendation: StoreBase
     [Range(0, int.MaxValue)] public int ProteinG { get; set; }
     [Range(0, int.MaxValue)] public int CarbsG { get; set; }
     [Range(0, int.MaxValue)] public int FatG { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

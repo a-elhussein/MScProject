@@ -11,4 +11,5 @@ public class UserProfileResponseDto
     public ActivityLevel ActivityLevel { get; set; }
     public Goal Goal { get; set; }
     public string TimeZone { get; set; } = "UTC";
+    public Sex Sex { get; set; }
 }

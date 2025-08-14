@@ -39,6 +39,7 @@ public class UserProfileRepository : IUserProfileRepository
             WeightKg = profile.WeightKg,
             ActivityLevel = profile.ActivityLevel,
             Goal = profile.Goal,
+            Sex = profile.Sex,
             TimeZone = profile.TimeZone
         };
 
@@ -64,6 +65,7 @@ public class UserProfileRepository : IUserProfileRepository
             profile.WeightKg = userProfileRequestDto.WeightKg;
             profile.ActivityLevel = userProfileRequestDto.ActivityLevel;
             profile.Goal = userProfileRequestDto.Goal;
+            profile.Sex = userProfileRequestDto.Sex;
             profile.UpdatedAt = DateTime.UtcNow;
             profile.TimeZone = userProfileRequestDto.TimeZone;
             profile.DateOfBirth = userProfileRequestDto.DateOfBirth;
@@ -88,6 +90,7 @@ public class UserProfileRepository : IUserProfileRepository
                 WeightKg = profile.WeightKg,
                 ActivityLevel = profile.ActivityLevel,
                 Goal = profile.Goal,
+                Sex = profile.Sex,
                 TimeZone = profile.TimeZone
             };
 
