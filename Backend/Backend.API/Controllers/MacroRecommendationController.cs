@@ -58,8 +58,30 @@ public class MacroRecommendationController: ControllerBase
         var result = await _macroRecommendationRepository.GetTrendsAsync(userId);
 
         if (result.ErrorExist)
+        {
             return BadRequest(result);
+        }
+        return Ok(result);
+    }
 
+    [HttpGet("latest")]
+    public async Task<IActionResult> GetLatest()
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            return Unauthorized(new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "Invalid or missing user ID"
+            });
+        }
+        
+        var result = await _macroRecommendationRepository.GetLatestAsync(userId);
+        if (result.ErrorExist)
+        {
+            return NotFound(result);
+        } 
         return Ok(result);
     }
     

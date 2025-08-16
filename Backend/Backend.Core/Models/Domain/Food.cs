@@ -15,6 +15,7 @@ public class Food:StoreBase
     public decimal? ProteinG100G { get; set; }
     public decimal? CarbsG100G { get; set; }
     public decimal? FatG100G { get; set; }
+    public decimal? ServingSizeG { get; set; }
     public string? Signature { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public ICollection<MealItem> MealItems { get; set; } = new List<MealItem>();

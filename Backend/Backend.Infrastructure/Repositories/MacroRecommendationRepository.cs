@@ -91,27 +91,6 @@ public class MacroRecommendationRepository: IMacroRecommendationRepository
 
     public async Task<ApplicationResponseModel<List<MacroRecommendationResponseDto>>> GetTrendsAsync(int userId)
     {
-        // var trends = await _dbContext.MacroRecommendation
-        //     .Where(m => m.UserId == userId)
-        //     .GroupBy(m => m.Day)
-        //     .Select(g => g.OrderByDescending(m => m.CreatedAt).First())
-        //     .OrderBy(m => m.Day)
-        //     .Select(m => new MacroRecommendationResponseDto
-        //     {
-        //         Day = m.Day.ToString("yyyy-MM-dd"),
-        //         CaloriesKcal = m.CaloriesKcal,
-        //         ProteinG = m.ProteinG,
-        //         CarbsG = m.CarbsG,
-        //         FatG = m.FatG,
-        //         CreatedAt = m.CreatedAt.ToString("yyyy-MM-dd HH:mm")
-        //     })
-        //     .ToListAsync();
-        //
-        // return new ApplicationResponseModel<List<MacroRecommendationResponseDto>>
-        // {
-        //     Data = trends,
-        //     ErrorExist = false
-        // };
         var allRecommendations = await _dbContext.MacroRecommendation
             .Where(m => m.UserId == userId)
             .ToListAsync();
@@ -133,6 +112,41 @@ public class MacroRecommendationRepository: IMacroRecommendationRepository
         return new ApplicationResponseModel<List<MacroRecommendationResponseDto>>
         {
             Data = latestPerDay,
+            ErrorExist = false,
+            ErrorMessage = null
+        };
+    }
+
+    public async Task<ApplicationResponseModel<MacroRecommendationResponseDto>> GetLatestAsync(int userId)
+    {
+        var latest = await _dbContext.MacroRecommendation
+            .Where(m => m.UserId == userId)
+            .OrderByDescending(m => m.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (latest == null)
+        {
+            return new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "No macro recommendations was found."
+            };
+        }
+
+        var dto = new MacroRecommendationResponseDto
+        {
+            Day = latest.Day.ToString("yyyy-MM-dd"),
+            CaloriesKcal = latest.CaloriesKcal,
+            ProteinG = latest.ProteinG,
+            CarbsG = latest.CarbsG,
+            FatG = latest.FatG,
+            CreatedAt = latest.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+        };
+
+        return new ApplicationResponseModel<MacroRecommendationResponseDto>
+        {
+            Data = dto,
             ErrorExist = false,
             ErrorMessage = null
         };

@@ -4,8 +4,11 @@ using Backend.API.Models;
 using Backend.Core.Auth;
 using Backend.Core.Models.Domain;
 using Backend.Core.Repositories;
+using Backend.Core.Services;
+using Backend.Core.Settings;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
+using Backend.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +18,10 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.Configure<OpenFoodFactsApiSettings>(
+    builder.Configuration.GetSection("OpenFoodFactsAPI"));
+
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
@@ -65,6 +72,8 @@ builder.Services.AddScoped<IUserRepository,UserRepository>();
 builder.Services.AddScoped<ITokenRepository,TokenRepository>();
 builder.Services.AddScoped<IUserProfileRepository,UserProfileRepository>();
 builder.Services.AddScoped<IMacroRecommendationRepository,MacroRecommendationRepository>();
+builder.Services.AddHttpClient<IOpenFoodFactsService,OpenFoodService>();
+builder.Services.AddScoped<IMealReadRepository, MealReadRepository>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
