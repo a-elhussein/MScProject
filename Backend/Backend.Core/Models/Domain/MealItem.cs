@@ -12,4 +12,14 @@ public class MealItem:StoreBase
     [ForeignKey(nameof(FoodId))]
     public Food Food { get; set; } = default!;
     public decimal QuantityGrams { get; set; }
+    public decimal ProteinG100G { get; set; }
+    public decimal CarbsG100G { get; set; }
+    public decimal FatG100G { get; set; }
+    public decimal EnergyKcal100G { get; set; }
+    public decimal? ServingSizeG { get; set; }
+    public int ProteinG { get; set; }
+    public int CarbsG { get; set; }
+    public int FatG { get; set; }
+    public int CaloriesKcal { get; set; }
+    public string? DisplayName { get; set; }
 }

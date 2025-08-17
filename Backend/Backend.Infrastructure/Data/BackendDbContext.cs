@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
+
+
 namespace Backend.Infrastructure.Data;
 
 public class BackendDbContext: IdentityDbContext<ApplicationUser, ApplicationRole, int>
@@ -28,9 +30,13 @@ public class BackendDbContext: IdentityDbContext<ApplicationUser, ApplicationRol
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<MacroRecommendation>().HasOne(m => m.UserProfile).WithMany().HasForeignKey(m => m.UserId)
+        builder.Entity<MacroRecommendation>().HasOne(m => m.UserProfile).WithMany()
+            .HasForeignKey(m => m.UserId)
             .HasPrincipalKey(u => u.UserId);
         
+        builder.Entity<Meal>().HasOne(m => m.UserProfile).WithMany()
+            .HasForeignKey(m => m.UserId)
+            .HasPrincipalKey(u => u.UserId);
         
 
         var roles = new List<ApplicationRole>

@@ -5,7 +5,10 @@ using Backend.Core.Repositories;
 using Backend.Core.Services;
 using Backend.Core.Settings;
 using Backend.Core.WebUtility;
+using Backend.Infrastructure.Data;
+using Backend.Core.Models.Domain;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Services;
 
@@ -13,15 +16,121 @@ public class OpenFoodService: IOpenFoodFactsService
 {
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
+    private readonly BackendDbContext _db;
     private readonly IMacroRecommendationRepository _macroRecommendationRepository;
-    private readonly IMealReadRepository _mealReadRepository;
+    private readonly IMealRepository _mealRepository;
 
-    public OpenFoodService(HttpClient httpClient, IOptions<OpenFoodFactsApiSettings> apiSettings, IMacroRecommendationRepository  macroRecommendationRepository, IMealReadRepository mealReadRepository)
+    public OpenFoodService(
+        HttpClient httpClient,
+        IOptions<OpenFoodFactsApiSettings> apiSettings,
+        IMacroRecommendationRepository macroRecommendationRepository,
+        IMealRepository mealRepository,
+        BackendDbContext db)
     {
         _httpClient = httpClient;
         _baseUrl = apiSettings.Value.BaseUrl.TrimEnd('/') + "/";
         _macroRecommendationRepository = macroRecommendationRepository;
-        _mealReadRepository = mealReadRepository;
+        _mealRepository = mealRepository;
+        _db = db;
+    }
+    
+    public async Task<ApplicationResponseModel<FoodScanResponseDto>> RefreshFoodAsync(string barcode)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(barcode))
+                return Fail<FoodScanResponseDto>("Barcode is required.");
+
+            // DB-first: if we have the food and it's reasonably fresh, return immediately
+            var existing = await _db.Set<Food>().FirstOrDefaultAsync(f => f.Barcode == barcode);
+            // (Optionally add staleness check via UpdatedAt)
+
+            // Always fetch from OFF to keep data current (you can add a 30-day cache policy later)
+            var resp = await _httpClient.GetAsync($"{_baseUrl}{barcode}.json");
+            if (!resp.IsSuccessStatusCode) 
+            {
+                // If network fails but we have a DB copy, use it
+                if (existing is not null)
+                {
+                    return Ok(new FoodScanResponseDto
+                    {
+                        Name = existing.ProductName ?? "Unknown product",
+                        Barcode = existing.Barcode,
+                        CaloriesKcal = 0, // not used in this call
+                        ProteinG = 0,
+                        CarbsG = 0,
+                        FatG = 0,
+                        ServingSizeG = existing.ServingSizeG.HasValue ? (double)existing.ServingSizeG.Value : null
+                    });
+                }
+                return Fail<FoodScanResponseDto>("Failed to reach OpenFoodFacts.");
+            }
+
+            var raw = await resp.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(raw);
+            if (!doc.RootElement.TryGetProperty("product", out var product))
+            {
+                // If OFF doesn't know it but we have DB, return DB
+                if (existing is not null)
+                {
+                    return Ok(new FoodScanResponseDto
+                    {
+                        Name = existing.ProductName ?? "Unknown product",
+                        Barcode = existing.Barcode,
+                        CaloriesKcal = 0,
+                        ProteinG = 0,
+                        CarbsG = 0,
+                        FatG = 0,
+                        ServingSizeG = existing.ServingSizeG.HasValue ? (double)existing.ServingSizeG.Value : null
+                    });
+                }
+                return Fail<FoodScanResponseDto>("Product not found.");
+            }
+
+            var nutriments = product.TryGetProperty("nutriments", out var n) ? n : default;
+            double per100Protein = GetDouble(nutriments, "proteins_100g");
+            double per100Carbs   = GetDouble(nutriments, "carbohydrates_100g");
+            double per100Fat     = GetDouble(nutriments, "fat_100g");
+            double per100Kcal    = GetDouble(nutriments, "energy-kcal_100g", "energy-kcal", "energy-kcal_100ml");
+
+            string name = product.TryGetProperty("product_name", out var pName)
+                ? (pName.GetString() ?? "Unknown product")
+                : "Unknown product";
+
+            string? servingText = product.TryGetProperty("serving_size", out var sProp) ? sProp.GetString() : null;
+            double? servingG = ParseServingSizeInGrams(servingText); // null if missing/unparseable
+
+            // Upsert into DB
+            if (existing is null)
+            {
+                existing = new Food { Barcode = barcode };
+                _db.Set<Food>().Add(existing);
+            }
+            existing.ProductName     = name;
+            existing.EnergyKcal100G  = (decimal?)per100Kcal;
+            existing.ProteinG100G    = (decimal?)per100Protein;
+            existing.CarbsG100G      = (decimal?)per100Carbs;
+            existing.FatG100G        = (decimal?)per100Fat;
+            existing.ServingSizeG    = servingG.HasValue ? (decimal?)servingG.Value : null;
+            existing.UpdatedAt       = DateTimeOffset.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new FoodScanResponseDto
+            {
+                Name = name,
+                Barcode = barcode,
+                CaloriesKcal = 0, // not used in this call
+                ProteinG = 0,
+                CarbsG = 0,
+                FatG = 0,
+                ServingSizeG = servingG
+            });
+        }
+        catch (Exception ex)
+        {
+            return Fail<FoodScanResponseDto>(ex.Message);
+        }
     }
     
     public async Task<ApplicationResponseModel<FoodMacroImpactResponseDto>> GetFoodMacroImpactAsync(FoodScanRequestDto foodScanRequestDto, int userId)
@@ -95,9 +204,11 @@ public class OpenFoodService: IOpenFoodFactsService
             int goalFat      = latestGoals.Data?.FatG         ?? 0;
             int goalCalories = latestGoals.Data?.CaloriesKcal ?? 0;
 
-            // --- 4) today's consumed totals (stubbed to zeros now) ---
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var consumed = await _mealReadRepository.GetTotalsForDayAsync(userId, today);
+            // --- 4) today's consumed totals ---
+            var totalsRes = await _mealRepository.GetDayTotalsAsync(userId, null); // null => today UTC
+            if (totalsRes.ErrorExist || totalsRes.Data is null)
+                return Fail<FoodMacroImpactResponseDto>(totalsRes.ErrorMessage ?? "Could not load daily totals.");
+            var consumed = totalsRes.Data.Totals; // TotalsDto
 
             // --- 5) labels per macro ---
             var impact = new MacroImpactResult

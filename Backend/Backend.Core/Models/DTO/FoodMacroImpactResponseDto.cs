@@ -20,6 +20,6 @@ namespace Backend.Core.Models.DTO
         public int After { get; set; }
         public int Goal { get; set; }
         public int Percentage { get; set; }
-        public string Label { get; set; }  
+        public string Label { get; set; } = "green";
     }
 }

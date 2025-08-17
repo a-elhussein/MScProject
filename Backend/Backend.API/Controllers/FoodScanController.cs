@@ -14,12 +14,13 @@ namespace Backend.API.Controllers
     {
         private readonly IOpenFoodFactsService _openFoodFactsService;
 
-        public FoodScanController(IOpenFoodFactsService  openFoodFactsService)
+        public FoodScanController(IOpenFoodFactsService openFoodFactsService)
         {
             _openFoodFactsService = openFoodFactsService;
         }
-        
-        [HttpPost("impact")]
+
+        [HttpPost]
+        [Route("impact")]
         public async Task<IActionResult> Impact([FromBody] FoodScanRequestDto dto)
         {
             // Extract userId from JWT (same pattern as MacroRecommendationController)
@@ -43,6 +44,7 @@ namespace Backend.API.Controllers
                     ErrorMessage = "Barcode is required"
                 });
             }
+
             if (dto.Quantity <= 0)
             {
                 return BadRequest(new ApplicationResponseModel<FoodMacroImpactResponseDto>
@@ -63,6 +65,37 @@ namespace Backend.API.Controllers
 
             if (result.ErrorExist) return BadRequest(result);
             return Ok(result);
+        }
+
+        [HttpPost]
+        [Route("refresh/{barcode}")]
+        public async Task<IActionResult> Refresh(string barcode)
+        {
+            if (string.IsNullOrWhiteSpace(barcode))
+                return BadRequest(new ApplicationResponseModel<string>
+                {
+                    ErrorExist = true,
+                    ErrorMessage = "Barcode is required."
+                });
+
+            var result = await _openFoodFactsService.RefreshFoodAsync(barcode);
+            return result.ErrorExist ? BadRequest(result) : Ok(result);
+        }
+
+// Fetch by barcode (calls refresh to keep data current)
+        [HttpGet]
+        [Route("{barcode}")]
+        public async Task<IActionResult> Get(string barcode)
+        {
+            if (string.IsNullOrWhiteSpace(barcode))
+                return BadRequest(new ApplicationResponseModel<string>
+                {
+                    ErrorExist = true,
+                    ErrorMessage = "Barcode is required."
+                });
+
+            var result = await _openFoodFactsService.RefreshFoodAsync(barcode);
+            return result.ErrorExist ? BadRequest(result) : Ok(result);
         }
     }
 }

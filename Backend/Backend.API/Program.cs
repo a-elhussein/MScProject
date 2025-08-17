@@ -73,7 +73,8 @@ builder.Services.AddScoped<ITokenRepository,TokenRepository>();
 builder.Services.AddScoped<IUserProfileRepository,UserProfileRepository>();
 builder.Services.AddScoped<IMacroRecommendationRepository,MacroRecommendationRepository>();
 builder.Services.AddHttpClient<IOpenFoodFactsService,OpenFoodService>();
-builder.Services.AddScoped<IMealReadRepository, MealReadRepository>();
+builder.Services.AddScoped<IMealRepository, MealRepository>();
+builder.Services.AddScoped<IFoodRepository, FoodRepository>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
