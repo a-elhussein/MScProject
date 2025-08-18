@@ -8,7 +8,9 @@ public readonly record struct MacroTotals(int CaloriesKcal, int ProteinG, int Ca
 
 public interface IMealRepository
 {
-    Task<ApplicationResponseModel<AddMealItemResponseDto>> AddItemAsync(int userId, AddMealItemRequestDto dto);
-    Task<ApplicationResponseModel<DayTotalsResponseDto>>   GetDayTotalsAsync(int userId, string? day);
-    Task<ApplicationResponseModel<DayItemsResponseDto>>    GetDayItemsAsync(int userId, string? day);
+    Task<ApplicationResponseModel<AddMealItemResponseDto>>AddItemAsync(int userId, AddMealItemRequestDto dto);
+    Task<ApplicationResponseModel<DayTotalsResponseDto>>GetDayTotalsAsync(int userId, string? day);
+    Task<ApplicationResponseModel<DayItemsResponseDto>>GetDayItemsAsync(int userId, string? day);
+    Task<ApplicationResponseModel<MealItemForDayDto>>UpdateItemAsync(int userId, int mealItemId, UpdateMealItemRequestDto dto);
+    Task<ApplicationResponseModel<string>>DeleteItemAsync(int userId, int mealItemId);
 }

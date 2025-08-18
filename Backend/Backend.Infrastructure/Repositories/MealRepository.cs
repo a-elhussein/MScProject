@@ -1,4 +1,5 @@
 using System.Globalization;
+using Backend.API.WebUtility;
 using Backend.Core.Models.Domain;
 using Backend.Core.Models.DTO;
 using Backend.Core.Repositories;
@@ -65,7 +66,9 @@ namespace Backend.Infrastructure.Repositories
                     // precomputed totals
                     ProteinG = p, CarbsG = c, FatG = f, CaloriesKcal = kcal,
 
-                    DisplayName = dto.DisplayName ?? food.ProductName
+                    DisplayName = !string.IsNullOrWhiteSpace(food.ProductName) ? food.ProductName
+                        : !string.IsNullOrWhiteSpace(food.Brand) ? food.Brand
+                        : food.Barcode
                 };
 
                 _dbContext.MealItem.Add(item);
@@ -101,6 +104,7 @@ namespace Backend.Infrastructure.Repositories
 
                 var agg = await _dbContext.MealItem
                     .Where(i => i.Meal.UserId == userId &&
+                                i.IsDeleted == IsDeleted.NotDeleted &&
                                 i.Meal.ConsumedAtUtc >= startUtc &&
                                 i.Meal.ConsumedAtUtc < endUtc)
                     .GroupBy(_ => 1)
@@ -155,6 +159,7 @@ namespace Backend.Infrastructure.Repositories
                     .Include(i => i.Meal)
                     .Include(i => i.Food)
                     .Where(i => i.Meal.UserId == userId &&
+                                i.IsDeleted == IsDeleted.NotDeleted &&
                                 i.Meal.ConsumedAtUtc >= startUtc &&
                                 i.Meal.ConsumedAtUtc < endUtc)
                     .OrderBy(i => i.Meal.MealType)
@@ -165,7 +170,9 @@ namespace Backend.Infrastructure.Repositories
                         MealId = i.MealId,
                         MealType = i.Meal.MealType.ToString(),
                         ConsumedAtUtc = i.Meal.ConsumedAtUtc,
-                        Name = i.DisplayName ?? (i.Food.ProductName ?? "Item"),
+                        Name = string.IsNullOrWhiteSpace(i.DisplayName)
+                            ? (i.Food.ProductName ?? "Item")
+                            : i.DisplayName,
                         QuantityGrams = i.QuantityGrams,
                         CaloriesKcal = i.CaloriesKcal,
                         ProteinG = i.ProteinG,
@@ -184,6 +191,125 @@ namespace Backend.Infrastructure.Repositories
             catch (Exception ex)
             {
                 return Fail<DayItemsResponseDto>(ex.Message);
+            }
+        }
+
+        public async Task<ApplicationResponseModel<MealItemForDayDto>> UpdateItemAsync(int userId, int mealItemId,
+            UpdateMealItemRequestDto updateMealItemRequestDto)
+        {
+            try
+            {
+                var item = await _dbContext.MealItem.Include(i => i.Meal)
+                    .Include(i => i.Food)
+                    .FirstOrDefaultAsync(i => i.Id == mealItemId);
+
+                if (item == null || item.IsDeleted == IsDeleted.Deleted)
+                {
+                    return Fail<MealItemForDayDto>("Item not found.");
+                }
+
+                if (item.Meal.UserId != userId)
+                {
+                    return Fail<MealItemForDayDto>("Auth Issue.");
+                }
+
+                // Validate quantity
+                if (updateMealItemRequestDto.Quantity <= 0)
+                    return Fail<MealItemForDayDto>("Quantity must be greater than zero.");
+
+                // Normalize unit (accepts g/gram/grams/1g, 100g, serving)
+                var unit = (updateMealItemRequestDto.Unit ?? "g").Trim().ToLowerInvariant();
+
+                // Resolve grams from unit + quantity
+
+                decimal grams;
+                if (unit == "1g")
+                {
+                    grams = (decimal)updateMealItemRequestDto.Quantity;
+                }
+                else if (unit == "100g")
+                {
+                    // multiples of 100g
+                    grams = 100m * (decimal)updateMealItemRequestDto.Quantity;
+                }
+                else if (unit == "serving")
+                {
+                    // serving(s) * serving size in grams
+                    if (item.Food.ServingSizeG is null)
+                        return Fail<MealItemForDayDto>("Serving size not available. Use unit 'g' or '100g'.");
+
+                    grams = item.Food.ServingSizeG.Value * (decimal)updateMealItemRequestDto.Quantity;
+                }
+                else
+                {
+                    // default to 100g behaviour
+                    grams = 100m * (decimal)updateMealItemRequestDto.Quantity;
+                }
+
+                // --- Scale existing stored totals by grams ratio (simple + predictable) ---
+                var oldGrams = item.QuantityGrams;
+
+                if (oldGrams <= 0) oldGrams = grams; // safety: avoid divide-by-zero for legacy rows
+
+                var ratio = grams / oldGrams; // e.g., 40g->50g => 1.25 (increase 25%)
+
+                item.QuantityGrams = grams;
+                item.CaloriesKcal = (int)Math.Round(item.CaloriesKcal * ratio);
+                item.ProteinG = (int)Math.Round(item.ProteinG * ratio);
+                item.CarbsG = (int)Math.Round(item.CarbsG * ratio);
+                item.FatG = (int)Math.Round(item.FatG * ratio);
+
+                await _dbContext.SaveChangesAsync();
+
+                var response = new MealItemForDayDto
+                {
+                    MealId = item.MealId,
+                    MealItemId = item.Id,
+                    MealType = item.Meal.MealType.ToString(),
+                    ConsumedAtUtc = item.Meal.ConsumedAtUtc,
+                    Name = string.IsNullOrWhiteSpace(item.DisplayName)
+                        ? (item.Food.ProductName ?? "Item")
+                        : item.DisplayName,
+                    QuantityGrams = item.QuantityGrams,
+                    CaloriesKcal = item.CaloriesKcal,
+                    ProteinG = item.ProteinG,
+                    CarbsG = item.CarbsG,
+                    FatG = item.FatG,
+                    Barcode = item.Food.Barcode
+                };
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return Fail<MealItemForDayDto>(e.Message);
+            }
+        }
+
+        public async Task<ApplicationResponseModel<string>> DeleteItemAsync(int userId, int mealItemId)
+        {
+            try
+            {
+                var item = await _dbContext.MealItem.Include(i => i.Meal)
+                    .FirstOrDefaultAsync(i => i.Id == mealItemId);
+
+                if (item is null || item.IsDeleted == IsDeleted.Deleted)
+                {
+                    return Fail<string>("Item not found.");
+                }
+
+                if (item.Meal.UserId != userId)
+                {
+                    return Fail<String>("Auth Issue.");
+                }
+
+                item.IsDeleted = IsDeleted.Deleted;
+                await _dbContext.SaveChangesAsync();
+
+                return Ok("Deleted.");
+            }
+            catch (Exception e)
+            {
+                return Fail<string>(e.Message);
             }
         }
 

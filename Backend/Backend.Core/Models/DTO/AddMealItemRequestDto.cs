@@ -9,5 +9,4 @@ public class AddMealItemRequestDto
     public double Quantity { get; set; } = 1.0;
     public MealType MealType { get; set; } = MealType.Lunch;
     public DateTime? ConsumedAtUtc { get; set; }
-    public string? DisplayName { get; set; }
 }

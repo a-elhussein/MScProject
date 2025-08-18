@@ -63,5 +63,27 @@ namespace Backend.API.Controllers
             return result.ErrorExist ? BadRequest(result) : Ok(result);
         }
 
+        [HttpPatch]
+        [Route("items/{mealItemId:int}")]
+        public async Task<IActionResult> UpdateItem(int mealItemId, [FromBody] UpdateMealItemRequestDto updateMealItemRequestDto)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized(new ApplicationResponseModel<string> { ErrorExist = true, ErrorMessage = "Invalid or missing user ID" });
+            
+            var result = await _mealRepository.UpdateItemAsync(userId, mealItemId, updateMealItemRequestDto);
+            return result.ErrorExist ? BadRequest(result) : Ok(result);
+        }
+
+        [HttpDelete]
+        [Route("items/{mealItemId:int}")]
+        public async Task<IActionResult> DeleteItem(int mealItemId)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized(new ApplicationResponseModel<string> { ErrorExist = true, ErrorMessage = "Invalid or missing user ID" });
+            
+            var result = await _mealRepository.DeleteItemAsync(userId, mealItemId);
+            return result.ErrorExist ? BadRequest(result) : Ok("Deleted");
+        }
+
     }
 }
