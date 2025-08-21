@@ -313,7 +313,67 @@ namespace Backend.Infrastructure.Repositories
             }
         }
 
-        private static ApplicationResponseModel<T> Ok<T>(T data) => new() { Data = data, ErrorExist = false };
+        public async Task<ApplicationResponseModel<List<FoodSearchDto>>> FoodSearchAsync(int userId, string? query, int limit)
+        {
+            try
+            {
+                var userItems = _dbContext.MealItem.AsNoTracking().Include(i => i.Food)
+                    .Include(i => i.Meal)
+                    .Where(i => i.Meal.UserId == userId && i.IsDeleted == IsDeleted.NotDeleted);
+
+                if (!string.IsNullOrWhiteSpace(query))
+                {
+                    var searchQuery = $"%{query.Trim()}%";
+
+                    userItems = userItems.Where(i => EF.Functions.ILike(i.Food.ProductName ?? string.Empty, searchQuery)
+                                                     || EF.Functions.ILike(i.Food.Brand ?? string.Empty, searchQuery));
+                }
+
+                var rows = await userItems
+                    .GroupBy(i => new { i.Food.Id, i.Food.Barcode })
+                    .OrderByDescending(g => g.Max(x => x.Meal.ConsumedAtUtc))
+                    .Select(g => new
+                    {
+                        g.Key.Barcode,
+                        
+                        Latest = g.OrderByDescending(x => x.Meal.ConsumedAtUtc)
+                            .Select(x => new
+                            {
+                                Name = x.Food.ProductName ?? "Unknown product",
+                                Brand = x.Food.Brand,
+                                ServingSizeG = x.Food.ServingSizeG,
+                                EnergyKcal100G = x.Food.EnergyKcal100G,
+                                ProteinG100G = x.Food.ProteinG100G,
+                                CarbsG100G = x.Food.CarbsG100G,
+                                FatG100G = x.Food.FatG100G
+                            })
+                            .FirstOrDefault()
+                    })
+                    .Take(limit)
+                    .ToListAsync();
+
+                var result = rows.Select(x => new FoodSearchDto
+                {
+                    Barcode        = x.Barcode,
+                    Name           = x.Latest?.Name ?? "Unknown product",
+                    Brand          = x.Latest?.Brand,
+                    ServingSizeG   = x.Latest?.ServingSizeG,
+                    EnergyKcal100G = x.Latest?.EnergyKcal100G,
+                    Protein100G   = x.Latest?.ProteinG100G,
+                    Carbs100G     = x.Latest?.CarbsG100G,
+                    Fat100G       = x.Latest?.FatG100G
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return Fail<List<FoodSearchDto>>(e.Message);
+            }
+        }
+
+        private static ApplicationResponseModel<T> Ok<T>(T data) =>
+            new() { Data = data, ErrorExist = false };
 
         private static ApplicationResponseModel<T> Fail<T>(string msg) =>
             new() { ErrorExist = true, ErrorMessage = msg };

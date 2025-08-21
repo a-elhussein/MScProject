@@ -85,5 +85,16 @@ namespace Backend.API.Controllers
             return result.ErrorExist ? BadRequest(result) : Ok("Deleted");
         }
 
+        [HttpGet]
+        [Route("userFoods")]
+        public async Task<IActionResult> GetUserFoods([FromQuery] string? query, [FromQuery] int limit = 20)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                return Unauthorized(new ApplicationResponseModel<string> { ErrorExist = true, ErrorMessage = "Invalid or missing user ID" });
+            
+            var result = await _mealRepository.FoodSearchAsync(userId, query, limit);
+            return result.ErrorExist ? BadRequest(result) : Ok(result);
+        }
+
     }
 }

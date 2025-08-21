@@ -8,8 +8,8 @@ namespace Backend.API.WebUtility
 
     public enum IsActive
     {
-        Inactive = 0,
-        Active = 1
+        Inactive = 1,
+        Active = 0
     }
 
     public enum ActivityLevel

@@ -13,4 +13,5 @@ public interface IMealRepository
     Task<ApplicationResponseModel<DayItemsResponseDto>>GetDayItemsAsync(int userId, string? day);
     Task<ApplicationResponseModel<MealItemForDayDto>>UpdateItemAsync(int userId, int mealItemId, UpdateMealItemRequestDto dto);
     Task<ApplicationResponseModel<string>>DeleteItemAsync(int userId, int mealItemId);
+    Task<ApplicationResponseModel<List<FoodSearchDto>>>FoodSearchAsync(int userId, string? query, int limit);
 }
