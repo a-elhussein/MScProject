@@ -2,8 +2,42 @@ import AuthLayout from '@/components/AuthLayout.tsx'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import {type FormEvent, useState} from "react";
+import {Link, useLocation, useNavigate} from "react-router-dom";
+import {login} from "@/api/auth.ts";
+import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {useAuth} from "@/context/useAuth.tsx";
 
 export default function LoginPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [remember, setRemember] = useState(false);
+    const {login: loginWithContext} = useAuth();
+
+    async function onSubmit(e: FormEvent) {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            const token = await login(username, password);
+            loginWithContext(token, remember);
+            const redirectTo = location?.state?.from?.pathname ?? 'dashboard'
+            navigate(redirectTo, {replace: true});
+        } catch (err:unknown) {
+            const message =
+                err instanceof Error
+            ? err.message: typeof err === 'string' ? err : "Login failed"
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <AuthLayout>
             <div className="text-center space-y-2">
@@ -11,19 +45,41 @@ export default function LoginPage() {
                 <p className="text-sm text-muted-foreground">Track meals. Hit your goals.</p>
             </div>
 
-            <div className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="you@example.com" />
+                    <Label htmlFor="username">Username</Label>
+                    <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" placeholder="••••••••" />
+                    <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
                 </div>
 
-                <Button className="w-full">Log In</Button>
-            </div>
+                {error && <p className="text-sm text-red-600">{error}</p>}
+
+                <Button type={"submit"} className="w-full" disabled={loading}>
+                    {loading ? 'Logging in…' : 'Log In'}
+                </Button>
+
+                <div className="flex items-center gap-2">
+                    <Checkbox
+                        id="remember"
+                        checked={remember}
+                        onCheckedChange={(v) => setRemember(Boolean(v))}
+                    />
+                    <Label htmlFor="remember" className="text-sm text-muted-foreground">
+                        Remember me
+                    </Label>
+                </div>
+            </form>
+
+            <p className="text-center text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Link to="/register" className="text-primary underline-offset-4 hover:underline">
+                    Register
+                </Link>
+            </p>
         </AuthLayout>
-    )
+    );
 }

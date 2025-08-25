@@ -22,6 +22,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<OpenFoodFactsApiSettings>(
     builder.Configuration.GetSection("OpenFoodFactsAPI"));
 
+const string FrontendCors = "FrontendCors";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCors, policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "https://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
@@ -61,18 +76,17 @@ builder.Services.AddDbContext<BackendDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<ApplicationRole>()
     .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("FoodLabelApp")
     .AddEntityFrameworkStores<BackendDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IUserRepository,UserRepository>();
-builder.Services.AddScoped<ITokenRepository,TokenRepository>();
-builder.Services.AddScoped<IUserProfileRepository,UserProfileRepository>();
-builder.Services.AddScoped<IMacroRecommendationRepository,MacroRecommendationRepository>();
-builder.Services.AddHttpClient<IOpenFoodFactsService,OpenFoodService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IMacroRecommendationRepository, MacroRecommendationRepository>();
+builder.Services.AddHttpClient<IOpenFoodFactsService, OpenFoodService>();
 builder.Services.AddScoped<IMealRepository, MealRepository>();
 builder.Services.AddScoped<IFoodRepository, FoodRepository>();
 
@@ -110,6 +124,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(FrontendCors);
 
 app.UseAuthentication();
 

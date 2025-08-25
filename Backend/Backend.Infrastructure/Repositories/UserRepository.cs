@@ -27,25 +27,30 @@ public class UserRepository: IUserRepository
     {
         var applicationUser = new ApplicationUser
         {
-            UserName = registerRequest.Username,
-            Email = registerRequest.Email,
-            IsActive = IsActive.Active,
+            UserName  = registerRequest.Username,
+            Email     = registerRequest.Email,
+            IsActive  = IsActive.Active,
             IsDeleted = IsDeleted.NotDeleted
         };
         
-        var identityResult = await _userManager.CreateAsync(applicationUser, registerRequest.Password);
-
-        if (identityResult.Succeeded)
+        var create = await _userManager.CreateAsync(applicationUser, registerRequest.Password);
+        if (!create.Succeeded)
         {
-            identityResult = await _userManager.AddToRoleAsync(applicationUser, "User");
-
-            if (identityResult.Succeeded)
-            {
-                return(new ApplicationResponseModel<string>(){Data = "User created successfully!", ErrorExist = false, ErrorMessage = null});
-            }
+            var msg = string.Join("; ", create.Errors.Select(e => $"{e.Code}: {e.Description}"));
+            return new ApplicationResponseModel<string?> { Data = null, ErrorExist = true, ErrorMessage = msg };
         }
         
-        return new ApplicationResponseModel<string?>(){Data = null, ErrorExist = true, ErrorMessage = "Something went wrong!"};
+        var addRole = await _userManager.AddToRoleAsync(applicationUser, "User");
+        if (!addRole.Succeeded)
+        {
+            var msg = string.Join("; ", addRole.Errors.Select(e => $"{e.Code}: {e.Description}"));
+            return new ApplicationResponseModel<string?> { Data = null, ErrorExist = true, ErrorMessage = msg };
+        }
+        
+        var roles = await _userManager.GetRolesAsync(applicationUser);
+        var jwt   = _tokenRepository.CreateJwtToken(applicationUser, roles.ToList());
+
+        return new ApplicationResponseModel<string?> { Data = jwt, ErrorExist = false, ErrorMessage = null };
     }
 
     public async Task<ApplicationResponseModel<LoginResponseDto?>> LoginAsync(LoginRequestDto loginRequest)
