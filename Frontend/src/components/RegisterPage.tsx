@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { register as apiRegister } from '@/api/auth'
-import { setToken } from '@/lib/auth'
-import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {Checkbox} from "@/components/ui/checkbox";
+import {useAuth} from "@/context/useAuth";
 
 export default function RegisterPage() {
+  const  {login} = useAuth();
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: { pathname?: string } } }
 
@@ -28,12 +29,10 @@ export default function RegisterPage() {
     setLoading(true)
     setError(null)
     try {
-      // call backend: returns a JWT string in data
-      const token = await apiRegister(username.trim(), email.trim(), password)
-      // save token based on "Remember me"
-      setToken(token, remember ? 'local' : 'session')
+      const tokenResp = await apiRegister(username.trim(), email.trim(), password);
+      const tokenStr = typeof tokenResp === "string" ? tokenResp : tokenResp.jwtToken;
+      await login(tokenStr, remember);
 
-      // redirect back to the guarded page, or dashboard by default
       const redirectTo = location?.state?.from?.pathname ?? '/dashboard'
       navigate(redirectTo, { replace: true })
     } catch (err) {

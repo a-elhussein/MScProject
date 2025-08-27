@@ -1,4 +1,4 @@
-import {type ReactNode} from "react";
+import { type ReactNode } from "react";
 import {Link, useNavigate} from "react-router-dom"
 import {
     NavigationMenu,
@@ -6,15 +6,17 @@ import {
     NavigationMenuItem,
     NavigationMenuLink,
 } from "@/components/ui/navigation-menu"
-// import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import {clearToken} from "@/lib/auth.ts";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
+
+
 
 type AppLayoutProps = { children: ReactNode }
 
 export default function AppLayout({ children }: AppLayoutProps) {
     const nav = useNavigate();
+
     function onLogout() {
         clearToken();
         nav("/login", {replace: true});
@@ -23,16 +25,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <header className="bg-card border-b">
-                {/* 3-column grid: left brand / center nav / right actions */}
                 <div className="mx-auto max-w-5xl h-14 grid grid-cols-3 items-center px-4">
-                    {/* Left: Brand */}
                     <div className="justify-self-start">
                         <Link to="/dashboard" className="font-semibold hover:opacity-90">
                             FoodTrack
                         </Link>
                     </div>
 
-                    {/* Center: shadcn NavigationMenu (hidden on mobile) */}
                     <div className="justify-self-center">
                         <NavigationMenu className="hidden md:block">
                             <NavigationMenuList className="gap-2">
@@ -66,8 +65,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         </Link>
                                     </NavigationMenuLink>
                                 </NavigationMenuItem>
-
-                                {/* “Log Food” button stays in the middle group */}
                                 <NavigationMenuItem>
                                     <Button asChild size="sm" variant="ghost" className="ml-2">
                                         <Link to="/log">Log Food</Link>
@@ -76,14 +73,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
                             </NavigationMenuList>
                         </NavigationMenu>
                     </div>
-
-                    {/* Right: Logout + Mobile menu trigger */}
                     <div className="justify-self-end flex items-center gap-2">
                         <Button variant="ghost" size="sm" onClick={onLogout}>
                             Logout
                         </Button>
-
-                        {/* Mobile drawer with the same links */}
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button variant="ghost" size="sm" className="md:hidden">
@@ -110,7 +103,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     </div>
                 </div>
             </header>
-
             <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
         </div>
     );

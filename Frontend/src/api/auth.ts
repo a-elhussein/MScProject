@@ -19,7 +19,7 @@ export async function register(username: string, email: string, password: string
         throw new Error(data.errorMessage ?? "Request failed");
     }
 
-    return data.data.jwtToken;
+    return data.data;
 }
 
 export async function login(username: string,password: string) {

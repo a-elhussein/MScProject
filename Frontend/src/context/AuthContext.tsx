@@ -1,6 +1,7 @@
-import { type ReactNode, useEffect, useState} from "react";
+import {type ReactNode, useEffect, useState} from "react";
 import {jwtDecode} from "jwt-decode";
-import { AuthContext } from "./AuthContextInstance";
+import {AuthContext, type UserProfile} from "./AuthContextInstance";
+import axios from "axios";
 interface AuthUser {
     userId: string;
     username: string;
@@ -20,6 +21,7 @@ interface JwtPayload {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     useEffect(() => {
         const token = sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -44,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    const login = (token: string, remember: boolean) => {
+    const login = async (token: string, remember: boolean) => {
         if (remember) localStorage.setItem("token", token);
         else sessionStorage.setItem("token", token);
         const decodedToken = jwtDecode<JwtPayload>(token);
@@ -58,18 +60,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             exp: decodedToken.exp,
         };
         setUser(decoded);
+
+        try {
+            const response = await axios.get("/api/UserProfile/Get");
+            const profile = response.data?.data;
+
+            if (profile) {
+                setUserProfile(profile);
+            } else {
+                setUserProfile(null);
+            }
+        } catch {
+            setUserProfile(null);
+        }
     };
 
     const logout = () => {
         localStorage.removeItem("token");
         sessionStorage.removeItem("token");
         setUser(null);
+
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthed: !!user, login, logout }}>
+        <AuthContext.Provider value={{ user, isAuthed: !!user, login, logout, userProfile, setUserProfile }}>
             {children}
         </AuthContext.Provider>
     );
-
 };
+

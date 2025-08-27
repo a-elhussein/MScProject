@@ -1,3 +1,5 @@
+import {jwtDecode} from "jwt-decode";
+
 const STORAGE_KEY = 'token';
 
 export type StorageKind = "session" | "local";
@@ -20,3 +22,13 @@ export function isLoggedIn(): boolean {
     return getToken() !== null;
 }
 
+type JwtPayload = { exp?: number };
+export function isTokenExpired(token: string, skewMs = 30_000): boolean {
+    try {
+        const { exp } = jwtDecode<JwtPayload>(token);
+        if (!exp) return false;
+        return Date.now() >= exp * 1000 - skewMs;
+    } catch {
+        return true;
+    }
+}

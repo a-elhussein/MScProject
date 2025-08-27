@@ -4,16 +4,21 @@ import {Navigate, Route, Routes, useLocation} from "react-router-dom";
 import AppLayout from "@/components/AppLayout.tsx";
 import RegisterPage from "@/components/RegisterPage.tsx";
 import type {ReactNode} from "react";
-import {getToken} from "@/lib/auth";
-
+import {clearToken, getToken, isTokenExpired} from "@/lib/auth";
+import DashboardPage from "@/components/DashboardPage.tsx";
 
 
 const RequireAuth = ({children}: { children: ReactNode }) => {
     const location = useLocation();
     const token = getToken();
-    return token
-        ? children
-        : <Navigate to="/login" replace state={{ from: location }} />;
+    if (!token) {
+        return <Navigate to="/login" replace state={{ from: location }} />;
+    }
+    if (isTokenExpired(token)) {
+        clearToken();
+        return <Navigate to="/login" replace state={{ from: location }} />;
+    }
+    return children;
 };
 
 const PublicOnly = ({ children }: { children: ReactNode }) => {
@@ -21,7 +26,7 @@ const PublicOnly = ({ children }: { children: ReactNode }) => {
     return token ? <Navigate to="/dashboard" replace /> : children;
 };
 
-const DashboardPage = () => <div className="text-xl">"Dashboard"</div>
+
 const LogPage = () => <div>Log Food</div>
 const StatsPage = () => <div>Stats</div>
 
