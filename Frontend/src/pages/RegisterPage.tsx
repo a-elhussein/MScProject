@@ -1,12 +1,12 @@
-import AuthLayout from '@/components/AuthLayout'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
+import AuthLayout from '@/components/AuthLayout.tsx'
+import { Input } from '@/components/ui/input.tsx'
+import { Label } from '@/components/ui/label.tsx'
+import { Button } from '@/components/ui/button.tsx'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { register as apiRegister } from '@/api/auth'
-import {Checkbox} from "@/components/ui/checkbox";
-import {useAuth} from "@/context/useAuth";
+import { register as apiRegister } from '@/api/auth.ts'
+import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {useAuth} from "@/context/useAuth.tsx";
 
 export default function RegisterPage() {
   const  {login} = useAuth();

@@ -1,7 +1,7 @@
 import AuthLayout from '@/components/AuthLayout.tsx'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input.tsx'
+import { Label } from '@/components/ui/label.tsx'
+import { Button } from '@/components/ui/button.tsx'
 import {type FormEvent, useState} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {login} from "@/api/auth.ts";

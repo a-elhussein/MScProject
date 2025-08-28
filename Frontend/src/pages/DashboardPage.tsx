@@ -1,24 +1,24 @@
 import {useMemo, useState} from "react";
-import axios from "@/lib/axios";
+import axios from "@/lib/axios.ts";
 import {useQuery} from "@tanstack/react-query";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button.tsx";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
+import {Badge} from "@/components/ui/badge.tsx";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
+} from "@/components/ui/dialog.tsx";
+import {Input} from "@/components/ui/input.tsx";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select.tsx";
 
 
 type MacroRec = {
@@ -62,6 +62,7 @@ function toneClassForPct(pct: number) {
     }
     return "bg-red-100 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900";
 }
+
 
 function todayDateOnly() {
     // ISO date-only (yyyy-mm-dd). Good enough for the recommend endpoint.
@@ -242,8 +243,9 @@ export default function DashboardPage() {
         isLoading: latestLoading,
         refetch: refetchLatest,
     } = useQuery({
-        queryKey: ["latestMacros"],
+        queryKey: ["macroLatest"],
         queryFn: async () => (await axios.get<LatestMacroResponse>("/api/MacroRecommendation/latest")).data,
+        refetchOnMount: "always",
     });
 
     const {
@@ -251,8 +253,9 @@ export default function DashboardPage() {
         isLoading: totalsLoading,
         refetch: refetchTotals,
     } = useQuery({
-        queryKey: ["mealsTotals"],
+        queryKey: ["mealsTotals", "today"],
         queryFn: async () => (await axios.get<MealsTotalsResponse>("/api/Meals/Totals")).data,
+        refetchOnMount: "always",
     });
 
     const loading = latestLoading || totalsLoading;
@@ -407,19 +410,28 @@ export default function DashboardPage() {
                             const over = r.left < 0;
                             const pct = r.target > 0 ? (r.used / r.target) * 100 : 0;
                             const tone = toneClassForPct(pct);
+                            const barTone =
+                                pct >= 90 ? 'bg-red-500' :
+                                pct >= 70 ? 'bg-amber-300' :
+                                'bg-green-500';
                             return (
-                                <div
-                                    key={r.label}
-                                    className="flex items-center justify-between rounded-md border p-2"
-                                >
-                                    <span className="font-medium">{r.label}</span>
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <span className="text-muted-foreground">
-                                             {fmt(r.used)} / {fmt(r.target)} {r.unit}
-                                        </span>
-                                        <Badge variant="outline" className={tone}>
-                                            {over ? `${fmt(Math.abs(r.left))} over` : `${fmt(r.left)} left`} · {Math.round(pct)}%
-                                        </Badge>
+                                <div key={r.label} className="space-y-1">
+                                    <div className="flex items-center justify-between rounded-md border p-2">
+                                        <span className="font-medium">{r.label}</span>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <span className="text-muted-foreground">
+                                                {fmt(r.used)} / {fmt(r.target)} {r.unit}
+                                            </span>
+                                            <Badge variant="outline" className={tone}>
+                                                {over ? `${fmt(Math.abs(r.left))} over` : `${fmt(r.left)} left`} · {Math.round(pct)}%
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-muted h-2 rounded">
+                                        <div
+                                            className={`h-2 rounded ${barTone}`}
+                                            style={{ width: `${Math.min(pct, 100)}%` }}
+                                        />
                                     </div>
                                 </div>
                             );

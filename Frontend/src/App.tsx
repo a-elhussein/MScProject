@@ -1,11 +1,12 @@
 import './App.css'
-import LoginPage from "@/components/LoginPage.tsx";
+import LoginPage from "@/pages/LoginPage.tsx";
 import {Navigate, Route, Routes, useLocation} from "react-router-dom";
 import AppLayout from "@/components/AppLayout.tsx";
-import RegisterPage from "@/components/RegisterPage.tsx";
+import RegisterPage from "@/pages/RegisterPage.tsx";
 import type {ReactNode} from "react";
 import {clearToken, getToken, isTokenExpired} from "@/lib/auth";
-import DashboardPage from "@/components/DashboardPage.tsx";
+import DashboardPage from "@/pages/DashboardPage.tsx";
+import LogPage from "@/pages/LogPage.tsx";
 
 
 const RequireAuth = ({children}: { children: ReactNode }) => {
@@ -27,7 +28,6 @@ const PublicOnly = ({ children }: { children: ReactNode }) => {
 };
 
 
-const LogPage = () => <div>Log Food</div>
 const StatsPage = () => <div>Stats</div>
 
 
