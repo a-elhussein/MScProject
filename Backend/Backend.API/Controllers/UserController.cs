@@ -1,9 +1,11 @@
+using System.Security.Claims;
 using Backend.API.Models.DTO;
 using Backend.API.WebUtility;
 using Backend.Core.Auth;
 using Backend.Core.Models.Domain;
 using Backend.Core.Models.DTO;
 using Backend.Core.Repositories;
+using Backend.Core.WebUtility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -82,7 +84,23 @@ namespace Backend.API.Controllers
             var user = await _userRepository.SetAdminRoleAsync(userId);
             return user.ErrorExist ? BadRequest(user.ErrorMessage) : Ok(user);
         }
-        
-        
+
+        [HttpPatch]
+        [Route("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetUserPasswordDto resetUserPasswordDto)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            {
+                return Unauthorized(new ApplicationResponseModel<string>
+                {
+                    Data = null,
+                    ErrorExist = true,
+                    ErrorMessage = "Invalid or missing user ID"
+                });
+            }
+
+            var resetPassword = await _userRepository.ResetPasswordAsync(userId.ToString(), resetUserPasswordDto);
+            return resetPassword.ErrorExist ? BadRequest(resetPassword.ErrorMessage) : Ok(resetPassword);
+        }
     }
 }

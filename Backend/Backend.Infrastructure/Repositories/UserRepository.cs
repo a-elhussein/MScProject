@@ -81,6 +81,25 @@ public class UserRepository: IUserRepository
         return new ApplicationResponseModel<LoginResponseDto?>(){Data = null, ErrorExist = true, ErrorMessage = "Username or Password is incorrect"};
     }
 
+    public async Task<ApplicationResponseModel<string>> ResetPasswordAsync(string id, ResetUserPasswordDto resetUserPasswordDto)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        var passwordCheck = await _userManager.CheckPasswordAsync(user, resetUserPasswordDto.CurrentPassword);
+
+        if (!passwordCheck)
+        {
+            return new ApplicationResponseModel<string>{Data = null, ErrorExist = true, ErrorMessage = "Current Password is incorrect"};
+        }
+
+        if (resetUserPasswordDto.NewPassword != resetUserPasswordDto.ConfirmNewPassword)
+        {
+            return new ApplicationResponseModel<string>{Data = null, ErrorExist = true, ErrorMessage = "Passwords do not match"};
+        }
+        
+        var passwordChange = await _userManager.ChangePasswordAsync(user, resetUserPasswordDto.CurrentPassword, resetUserPasswordDto.NewPassword);
+        return new ApplicationResponseModel<string>{Data = "Password Changed Successfully", ErrorExist = false, ErrorMessage = null};
+    }
+
     public async Task<ApplicationResponseModel<List<GetUserDetailsDto>>> GetAllUsersAsync()
     {
         try

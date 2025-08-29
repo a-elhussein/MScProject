@@ -34,6 +34,7 @@ public class UserProfileRepository : IUserProfileRepository
 
         var getUserProfile = new UserProfileResponseDto()
         {
+            UserId = profile.UserId,
             DateOfBirth = profile.DateOfBirth,
             HeightCm = profile.HeightCm,
             WeightKg = profile.WeightKg,

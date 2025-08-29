@@ -84,5 +84,36 @@ public class MacroRecommendationController: ControllerBase
         } 
         return Ok(result);
     }
+
+    [HttpPatch("latest")]
+    public async Task<IActionResult> UpdateLatest([FromBody] UpdateLatestMacroDto updateLatestMacroDto)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            return Unauthorized(new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "Invalid or missing user ID"
+            });
+        }
+
+        if (updateLatestMacroDto.CaloriesKcal is < 800 or > 10000)
+        {
+            return BadRequest(new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "Calories must be between 800 and 10000."
+            });
+        }
+        
+        var result = await _macroRecommendationRepository.OverrideLatestMacrosAsync(userId, updateLatestMacroDto);
+        if (result.ErrorExist)
+        {
+            return NotFound(result);
+        }
+        return Ok(result);
+    }
     
 }

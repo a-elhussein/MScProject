@@ -7,6 +7,8 @@ import type {ReactNode} from "react";
 import {clearToken, getToken, isTokenExpired} from "@/lib/auth";
 import DashboardPage from "@/pages/DashboardPage.tsx";
 import LogPage from "@/pages/LogPage.tsx";
+import RequireProfile from "@/components/RequireProfile.tsx";
+import UserProfilePage from "@/pages/UserProfilePage.tsx";
 
 
 const RequireAuth = ({children}: { children: ReactNode }) => {
@@ -27,14 +29,10 @@ const PublicOnly = ({ children }: { children: ReactNode }) => {
     return token ? <Navigate to="/dashboard" replace /> : children;
 };
 
-
-const StatsPage = () => <div>Stats</div>
-
-
 function App() {
     return (
         <Routes>
-            <Route path="/" element={<Navigate to="/register" replace/>}/>
+            <Route path="/" element={<Navigate to="/login" replace/>}/>
             <Route path="/login" element={ <PublicOnly><LoginPage/></PublicOnly>}/>
             <Route path="/register" element={<PublicOnly><RegisterPage/></PublicOnly>}/>
 
@@ -52,18 +50,20 @@ function App() {
                 path="/log"
                 element={
                     <RequireAuth>
+                        <RequireProfile>
                         <AppLayout>
                             <LogPage/>
                         </AppLayout>
+                        </RequireProfile>
                     </RequireAuth>
                 }
             />
             <Route
-                path="/stats"
+                path="/user-profile"
                 element={
                     <RequireAuth>
                         <AppLayout>
-                            <StatsPage/>
+                            <UserProfilePage/>
                         </AppLayout>
                     </RequireAuth>
                 }

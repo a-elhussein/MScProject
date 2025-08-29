@@ -151,4 +151,58 @@ public class MacroRecommendationRepository: IMacroRecommendationRepository
             ErrorMessage = null
         };
     }
+    
+    public async Task<ApplicationResponseModel<MacroRecommendationResponseDto>> OverrideLatestMacrosAsync(int userId, UpdateLatestMacroDto dto)
+    {
+        var userProfile = await _dbContext.UserProfile.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (userProfile == null)
+        {
+            return new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "User not found"
+            };
+        }
+
+        var latestMacro = await _dbContext.MacroRecommendation
+            .Where(m => m.UserId == userId)
+            .OrderByDescending(m => m.Day)
+            .FirstOrDefaultAsync();
+
+        if (latestMacro == null)
+        {
+            return new ApplicationResponseModel<MacroRecommendationResponseDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "No macro recommendation found for the user."
+            };
+        }
+        
+        latestMacro.CaloriesKcal = dto.CaloriesKcal;
+        latestMacro.ProteinG = dto.ProteinG;
+        latestMacro.FatG = dto.FatG;
+        latestMacro.CarbsG = dto.CarbG;
+        latestMacro.CreatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        var response = new MacroRecommendationResponseDto
+        {
+            Day = latestMacro.Day.ToString("yyyy-MM-dd"),
+            CaloriesKcal = latestMacro.CaloriesKcal,
+            ProteinG = latestMacro.ProteinG,
+            CarbsG = latestMacro.CarbsG,
+            FatG = latestMacro.FatG,
+            CreatedAt = latestMacro.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+        };
+
+        return new ApplicationResponseModel<MacroRecommendationResponseDto>
+        {
+            Data = response,
+            ErrorExist = false,
+            ErrorMessage = null
+        };
+    }
 }

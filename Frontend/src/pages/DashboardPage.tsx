@@ -1,7 +1,9 @@
 import {useMemo, useState} from "react";
 import axios from "@/lib/axios.ts";
-import {useQuery} from "@tanstack/react-query";
+import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button.tsx";
+import { PencilLine } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import {
@@ -19,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select.tsx";
+import MacroOverrideEditor from "@/components/MacroOverrideEditor.tsx";
 
 
 type MacroRec = {
@@ -86,6 +89,7 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
     const [sex, setSex] = useState("0"); // 0..2
     const [busy, setBusy] = useState(false);
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const qc = useQueryClient();
 
     const canSubmit =
         !!dateOfBirth &&
@@ -116,12 +120,25 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
                 day: todayDateOnly(),
             });
 
+            // 3) update caches so the whole app reacts immediately (nav + dashboard)
+            qc.setQueryData(["userProfile"], {
+                dateOfBirth,
+                heightCm: Number(heightCm),
+                weightKg: Number(weightKg),
+                activityLevel: Number(activityLevel),
+                goal: Number(goal),
+                sex: Number(sex),
+                timeZone: tz,
+            });
+            await qc.invalidateQueries({queryKey: ["userProfile"]});
+            await qc.invalidateQueries({queryKey: ["macroLatest"]});
+            await qc.invalidateQueries({queryKey: ["mealsTotals", "today"]});
+
             // 3) tell parent to refetch dashboard data
             await onSaved();
             onClose();
         } catch (e) {
             console.error("Failed to save profile / recommend:", e);
-            // you can drop a toast here if you’re already using sonner
         } finally {
             setBusy(false);
         }
@@ -237,6 +254,7 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
 /** ---------- main Dashboard ---------- */
 export default function DashboardPage() {
     const [profileOpen, setProfileOpen] = useState(false);
+    const [overrideOpen, setOverrideOpen] = useState(false);
 
     const {
         data: latestData,
@@ -333,10 +351,21 @@ export default function DashboardPage() {
             )}
 
             {/* When we have data, show comparison */}
-            <div className="grid gap-4 md:grid-cols-2">
+           <div className="grid gap-4 md:grid-cols-2">
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Recommended</CardTitle>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="icon" variant="ghost" onClick={() => setOverrideOpen(true)}>
+                                <span className="sr-only">Edit macros</span>
+                                <PencilLine className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">Edit macros</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
@@ -412,8 +441,8 @@ export default function DashboardPage() {
                             const tone = toneClassForPct(pct);
                             const barTone =
                                 pct >= 90 ? 'bg-red-500' :
-                                pct >= 70 ? 'bg-amber-300' :
-                                'bg-green-500';
+                                    pct >= 70 ? 'bg-amber-300' :
+                                        'bg-green-500';
                             return (
                                 <div key={r.label} className="space-y-1">
                                     <div className="flex items-center justify-between rounded-md border p-2">
@@ -430,7 +459,7 @@ export default function DashboardPage() {
                                     <div className="w-full bg-muted h-2 rounded">
                                         <div
                                             className={`h-2 rounded ${barTone}`}
-                                            style={{ width: `${Math.min(pct, 100)}%` }}
+                                            style={{width: `${Math.min(pct, 100)}%`}}
                                         />
                                     </div>
                                 </div>
@@ -445,6 +474,14 @@ export default function DashboardPage() {
                 open={profileOpen}
                 onClose={() => setProfileOpen(false)}
                 onSaved={async () => {
+                    await Promise.all([refetchLatest(), refetchTotals()]);
+                }}
+            />
+            <MacroOverrideEditor
+                open={overrideOpen}
+                onClose={() => setOverrideOpen(false)}
+                onSaved={async () => {
+                    setOverrideOpen(false);
                     await Promise.all([refetchLatest(), refetchTotals()]);
                 }}
             />

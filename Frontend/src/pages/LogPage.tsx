@@ -25,7 +25,6 @@ type MealItem = {
 type ItemsResponse = { day: string; items: MealItem[] };
 type MealType = 0 | 1 | 2; // 0=Breakfast,1=Lunch,2=Dinner
 
-// Optional: gentle tone per meal (tweak/remove if you prefer neutral)
 const mealTone: Record<MealTypeStr, string> = {
     Breakfast: "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-900",
     Lunch: "bg-sky-50 border-sky-200 dark:bg-sky-950 dark:border-sky-900",

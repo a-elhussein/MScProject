@@ -1,119 +1,131 @@
-// src/components/NavBar.tsx
-import { Link, NavLink } from "react-router-dom";
-import { Menu } from "lucide-react";
-
+// src/components/Navbar.tsx
+import { Link, useNavigate } from "react-router-dom";
+import { clearToken } from "@/lib/auth";
+import { useUserProfile } from "@/context/useUserProfile";
 import {
     NavigationMenu,
     NavigationMenuList,
     NavigationMenuItem,
     NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { User } from "lucide-react";
 
-function navClasses(isActive: boolean) {
-    return [
-        "px-3 py-2 rounded-md text-sm transition-colors",
-        isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-    ].join(" ");
-}
+export default function Navbar() {
+    const nav = useNavigate();
+    const { data: profile } = useUserProfile();
 
-export default function NavBar({ onLogout }: { onLogout?: () => void }) {
+    function onLogout() {
+        clearToken();
+        nav("/login", { replace: true });
+    }
+
     return (
-        <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
-            <div className="mx-auto max-w-5xl h-14 px-4 flex items-center justify-between gap-3">
-                {/* Brand */}
-                <Link to="/dashboard" className="font-semibold tracking-tight">
-                    FoodTrack
-                </Link>
-
-                {/* Desktop nav */}
-                <NavigationMenu className="hidden md:block">
-                    <NavigationMenuList className="gap-1">
-                        <NavigationMenuItem>
-                            <NavigationMenuLink asChild>
-                                <NavLink to="/dashboard" className={({ isActive }) => navClasses(isActive)}>
-                                    Dashboard
-                                </NavLink>
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink asChild>
-                                <NavLink to="/log" className={({ isActive }) => navClasses(isActive)}>
-                                    Log
-                                </NavLink>
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink asChild>
-                                <NavLink to="/stats" className={({ isActive }) => navClasses(isActive)}>
-                                    Stats
-                                </NavLink>
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
-
-                {/* Right actions (desktop) */}
-                <div className="hidden md:flex items-center gap-2">
-                    <Button asChild variant="secondary" className="h-9">
-                        <Link to="/log">Log Food</Link>
-                    </Button>
-                    {onLogout && (
-                        <Button variant="ghost" className="h-9" onClick={onLogout}>
-                            Logout
-                        </Button>
-                    )}
+        <header className="bg-card border-b">
+            <div className="mx-auto max-w-5xl h-14 grid grid-cols-3 items-center px-4">
+                <div className="justify-self-start">
+                    <Link to="/dashboard" className="font-semibold hover:opacity-90">
+                        FoodTrack
+                    </Link>
                 </div>
 
-                {/* Mobile menu (Sheet) */}
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button size="icon" variant="ghost" className="md:hidden">
-                            <Menu className="h-5 w-5" />
-                            <span className="sr-only">Open menu</span>
-                        </Button>
-                    </SheetTrigger>
-
-                    <SheetContent side="right" className="w-80">
-                        <SheetHeader>
-                            <SheetTitle>Menu</SheetTitle>
-                        </SheetHeader>
-
-                        <div className="mt-4 flex flex-col gap-2">
-                            <SheetClose asChild>
-                                <Button asChild variant="ghost" className="justify-start">
-                                    <NavLink to="/dashboard">Dashboard</NavLink>
-                                </Button>
-                            </SheetClose>
-                            <SheetClose asChild>
-                                <Button asChild variant="ghost" className="justify-start">
-                                    <NavLink to="/log">Log</NavLink>
-                                </Button>
-                            </SheetClose>
-                            <SheetClose asChild>
-                                <Button asChild variant="ghost" className="justify-start">
-                                    <NavLink to="/stats">Stats</NavLink>
-                                </Button>
-                            </SheetClose>
-
-                            <Separator className="my-2" />
-
-                            <SheetClose asChild>
-                                <Button asChild variant="secondary">
-                                    <NavLink to="/log">Log Food</NavLink>
-                                </Button>
-                            </SheetClose>
-
-                            {onLogout && (
-                                <Button variant="ghost" onClick={onLogout}>
-                                    Logout
-                                </Button>
+                <div className="justify-self-center">
+                    <NavigationMenu className="hidden md:block">
+                        <NavigationMenuList className="gap-2">
+                            <NavigationMenuItem>
+                                <NavigationMenuLink asChild>
+                                    <Link
+                                        to="/dashboard"
+                                        className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                </NavigationMenuLink>
+                            </NavigationMenuItem>
+                            {profile && (
+                                <>
+                                    <NavigationMenuItem>
+                                        <NavigationMenuLink asChild>
+                                            <Link
+                                                to="/log"
+                                                className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
+                                            >
+                                                Log
+                                            </Link>
+                                        </NavigationMenuLink>
+                                    </NavigationMenuItem>
+                                    <NavigationMenuItem>
+                                        <NavigationMenuLink asChild>
+                                            <Link
+                                                to="/stats"
+                                                className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
+                                            >
+                                                Stats
+                                            </Link>
+                                        </NavigationMenuLink>
+                                    </NavigationMenuItem>
+                                    <NavigationMenuItem>
+                                        <Button asChild size="sm" variant="ghost" className="ml-2">
+                                            <Link to="/log">Log Food</Link>
+                                        </Button>
+                                    </NavigationMenuItem>
+                                </>
                             )}
-                        </div>
-                    </SheetContent>
-                </Sheet>
+                        </NavigationMenuList>
+                    </NavigationMenu>
+                </div>
+
+                <div className="justify-self-end flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="gap-2">
+                                <User className="h-4 w-4" />
+                                <span className="sr-only">User menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                                <Link to="/user-profile">Profile</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="sm" className="md:hidden">
+                                Menu
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="p-4">
+                            <nav className="grid gap-3">
+                                <Link to="/dashboard" className="text-sm">
+                                    Dashboard
+                                </Link>
+                                {profile && (
+                                    <>
+                                        <Link to="/log" className="text-sm">
+                                            Log
+                                        </Link>
+                                        <Link to="/stats" className="text-sm">
+                                            Stats
+                                        </Link>
+                                        <Button asChild variant="secondary" className="mt-2">
+                                            <Link to="/log">Log Food</Link>
+                                        </Button>
+                                    </>
+                                )}
+                            </nav>
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </div>
         </header>
     );
