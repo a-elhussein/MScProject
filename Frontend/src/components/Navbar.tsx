@@ -57,24 +57,19 @@ export default function Navbar() {
                                                 to="/log"
                                                 className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
                                             >
-                                                Log
+                                                Log Food
                                             </Link>
                                         </NavigationMenuLink>
                                     </NavigationMenuItem>
                                     <NavigationMenuItem>
                                         <NavigationMenuLink asChild>
                                             <Link
-                                                to="/stats"
+                                                to="/trends"
                                                 className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
                                             >
-                                                Stats
+                                                Trends
                                             </Link>
                                         </NavigationMenuLink>
-                                    </NavigationMenuItem>
-                                    <NavigationMenuItem>
-                                        <Button asChild size="sm" variant="ghost" className="ml-2">
-                                            <Link to="/log">Log Food</Link>
-                                        </Button>
                                     </NavigationMenuItem>
                                 </>
                             )}

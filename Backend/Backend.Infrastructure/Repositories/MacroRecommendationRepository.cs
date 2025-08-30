@@ -1,3 +1,4 @@
+using System.Globalization;
 using Backend.API.WebUtility;
 using Backend.Core.Models.Domain;
 using Backend.Core.Models.DTO;
@@ -101,7 +102,7 @@ public class MacroRecommendationRepository: IMacroRecommendationRepository
             .OrderBy(m => m.Day)
             .Select(m => new MacroRecommendationResponseDto
             {
-                Day = m.Day.ToString("yyyy-MM-dd"),
+                Day = m.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 CaloriesKcal = m.CaloriesKcal,
                 ProteinG = m.ProteinG,
                 CarbsG = m.CarbsG,

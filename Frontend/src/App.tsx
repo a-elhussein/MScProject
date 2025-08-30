@@ -9,6 +9,7 @@ import DashboardPage from "@/pages/DashboardPage.tsx";
 import LogPage from "@/pages/LogPage.tsx";
 import RequireProfile from "@/components/RequireProfile.tsx";
 import UserProfilePage from "@/pages/UserProfilePage.tsx";
+import TrendsPage from "@/pages/TrendsPage.tsx";
 
 
 const RequireAuth = ({children}: { children: ReactNode }) => {
@@ -65,6 +66,18 @@ function App() {
                         <AppLayout>
                             <UserProfilePage/>
                         </AppLayout>
+                    </RequireAuth>
+                }
+            />
+            <Route
+                path="/trends"
+                element={
+                    <RequireAuth>
+                        <RequireProfile>
+                            <AppLayout>
+                                <TrendsPage/>
+                            </AppLayout>
+                        </RequireProfile>
                     </RequireAuth>
                 }
             />
