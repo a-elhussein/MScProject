@@ -23,9 +23,9 @@ public class BackendDbContext: IdentityDbContext<ApplicationUser, ApplicationRol
     public DbSet<Food> Food { get; set; }
     public DbSet<Meal> Meal { get; set; }
     public DbSet<MealItem> MealItem { get; set; }
+    public DbSet<Gamification> Gamification { get; set; }
     
     
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

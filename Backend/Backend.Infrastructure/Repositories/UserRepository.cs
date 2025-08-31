@@ -115,6 +115,7 @@ public class UserRepository: IUserRepository
                 list.Add(new GetUserDetailsDto
                 {
                     UserId = user.Id,
+                    UserName = user.UserName,
                     Email = user.Email,
                     IsActive = user.IsActive
                 });
@@ -160,5 +161,65 @@ public class UserRepository: IUserRepository
         }
         await _userManager.AddToRoleAsync(user, "Admin");
         return new ApplicationResponseModel<string>(){Data = "Admin Role Granted!", ErrorExist = false, ErrorMessage = null};
+    }
+
+    public async Task<ApplicationResponseModel<string?>> RegisterAdminAsync(RegisterRequestDto registerRequestDto)
+    {
+        var applicationUser = new ApplicationUser
+        {
+            UserName = registerRequestDto.Username,
+            Email = registerRequestDto.Email,
+            IsActive = IsActive.Active,
+            IsDeleted = IsDeleted.NotDeleted
+        };
+        var create = await _userManager.CreateAsync(applicationUser, registerRequestDto.Password);
+        
+        if (!create.Succeeded)
+        {
+            var msg = string.Join("; ", create.Errors.Select(e => $"{e.Code}: {e.Description}"));
+            return new ApplicationResponseModel<string?> { Data = null, ErrorExist = true, ErrorMessage = msg };
+        }
+        
+        var addRole = await _userManager.AddToRoleAsync(applicationUser, "Admin");
+        if (!addRole.Succeeded)
+        {
+            var msg = string.Join("; ", addRole.Errors.Select(e => $"{e.Code}: {e.Description}"));
+            return new ApplicationResponseModel<string?> { Data = null, ErrorExist = true, ErrorMessage = msg };
+        }
+        
+        var roles = await _userManager.GetRolesAsync(applicationUser);
+        
+        return new ApplicationResponseModel<string?>(){ Data = "New Admin Created Successfully", ErrorExist = false, ErrorMessage = null };
+    }
+
+    public async Task<ApplicationResponseModel<UserInfoDto>> GetUserByIdAsync(int userId)
+    {
+        var user = await _dbContext.Users
+            .Where(u => u.Id == userId)
+            .Select(u => new UserInfoDto
+            {
+                UserId = u.Id,
+                UserName = u.UserName,
+                Email = u.Email,
+                IsActive = u.IsActive
+            })
+            .FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            return new ApplicationResponseModel<UserInfoDto>
+            {
+                Data = null,
+                ErrorExist = true,
+                ErrorMessage = "User not found"
+            };
+        }
+
+        return new ApplicationResponseModel<UserInfoDto>
+        {
+            Data = user,
+            ErrorExist = false,
+            ErrorMessage = null
+        };
     }
 }

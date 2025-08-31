@@ -90,6 +90,7 @@ public class UserProfileRepository : IUserProfileRepository
                 HeightCm = profile.HeightCm,
                 WeightKg = profile.WeightKg,
                 ActivityLevel = profile.ActivityLevel,
+                DateOfBirth = profile.DateOfBirth,
                 Goal = profile.Goal,
                 Sex = profile.Sex,
                 TimeZone = profile.TimeZone

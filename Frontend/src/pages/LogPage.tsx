@@ -84,7 +84,7 @@ export default function LogPage() {
     return (
         <div className="mx-auto w-full max-w-2xl space-y-6">
             <div className="flex items-baseline justify-between">
-                <h1 className="text-2xl font-semibold">Log Food</h1>
+                <h1 className="text-4xl font-semibold w-full text-center">Log Food</h1>
                 {itemsQuery.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
                 {itemsQuery.isError && <p className="text-sm text-red-600">Couldn’t load items.</p>}
             </div>

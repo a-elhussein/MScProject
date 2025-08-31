@@ -3,18 +3,23 @@ using Backend.API.WebUtility;
 using Backend.Core.Models.Domain;
 using Backend.Core.Models.DTO;
 using Backend.Core.Repositories;
+using Backend.Core.Services;
 using Backend.Core.WebUtility;
 using Backend.Infrastructure.Data;
+using Backend.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Repositories
 {
     public class MealRepository : IMealRepository
     {
+        public IGamificationService GamificationService { get; }
         private readonly BackendDbContext _dbContext;
+        private readonly IGamificationService _gamificationService;
 
-        public MealRepository(BackendDbContext dbContext)
+        public MealRepository(BackendDbContext dbContext, IGamificationService gamificationService)
         {
+            GamificationService = gamificationService;
             _dbContext = dbContext;
         }
 
@@ -74,6 +79,8 @@ namespace Backend.Infrastructure.Repositories
                 _dbContext.MealItem.Add(item);
                 await _dbContext.SaveChangesAsync();
 
+                await GamificationService.UpdateAfterMealLogAsync(userId);
+
                 return Ok(new AddMealItemResponseDto { MealItemId = item.Id });
             }
             catch (Exception ex)
@@ -83,8 +90,7 @@ namespace Backend.Infrastructure.Repositories
         }
 
 
-        public async
-            Task<ApplicationResponseModel<DayTotalsResponseDto>> GetDayTotalsAsync(int userId, string? day)
+        public async Task<ApplicationResponseModel<DayTotalsResponseDto>> GetDayTotalsAsync(int userId, string? day)
         {
             try
             {

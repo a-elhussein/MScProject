@@ -89,6 +89,8 @@ builder.Services.AddScoped<IMacroRecommendationRepository, MacroRecommendationRe
 builder.Services.AddHttpClient<IOpenFoodFactsService, OpenFoodService>();
 builder.Services.AddScoped<IMealRepository, MealRepository>();
 builder.Services.AddScoped<IFoodRepository, FoodRepository>();
+builder.Services.AddScoped<IGamificationRepository, GamificationRepository>();
+builder.Services.AddScoped<IGamificationService, GamificationService>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

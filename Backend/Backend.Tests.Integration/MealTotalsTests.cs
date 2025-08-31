@@ -3,6 +3,7 @@ using Backend.Core.Models.Domain;
 using Backend.Core.Models.DTO;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
+using Backend.Infrastructure.Services;
 using FluentAssertions;
 using Xunit;
 using Microsoft.Data.Sqlite;
@@ -46,7 +47,11 @@ public class MealTotalsTests : IAsyncLifetime
             FatG100G = 5m
         });
         await _backendDbContext.SaveChangesAsync();
-        _mealRepository = new MealRepository(_backendDbContext);
+        
+        var gamificationRepo = new GamificationRepository(_backendDbContext);
+        var gamificationService = new GamificationService(gamificationRepo, _backendDbContext);
+        
+        _mealRepository = new MealRepository(_backendDbContext,  gamificationService);
     }
 
     public async Task DisposeAsync()
@@ -73,6 +78,14 @@ public class MealTotalsTests : IAsyncLifetime
         mealItem.ErrorExist.Should().BeFalse("add should succeed");
         mealItem.Data.Should().NotBeNull();
         var mealItemId = mealItem.Data!.MealItemId;
+        
+        var gamification = await _backendDbContext.Gamification
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.UserId == 3);
+        gamification.Should().NotBeNull("gamification should be created after first meal log");
+        gamification!.Xp.Should().Be(10);
+        gamification.CurrentStreak.Should().Be(1);
+        gamification.Level.Should().Be(1);
         
         var totals = await _mealRepository.GetDayTotalsAsync(3, null);
 

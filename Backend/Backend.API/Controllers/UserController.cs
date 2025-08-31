@@ -102,5 +102,41 @@ namespace Backend.API.Controllers
             var resetPassword = await _userRepository.ResetPasswordAsync(userId.ToString(), resetUserPasswordDto);
             return resetPassword.ErrorExist ? BadRequest(resetPassword.ErrorMessage) : Ok(resetPassword);
         }
+
+        [HttpPost]
+        [Route("RegisterAdmin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterRequestDto registerRequestDto)
+        {
+            var registerUser = await _userRepository.RegisterAdminAsync(registerRequestDto);
+
+            if (registerUser.ErrorExist)
+            {
+                return BadRequest(registerUser.ErrorMessage);
+            }
+            
+            return Ok(registerUser);
+        }
+        
+        [Authorize]
+        [HttpGet("userinfo")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            {
+                return Unauthorized(new ApplicationResponseModel<string>
+                {
+                    Data = null,
+                    ErrorExist = true,
+                    ErrorMessage = "Invalid or missing user ID"
+                });
+            }
+
+            var result = await _userRepository.GetUserByIdAsync(userId);
+            if (result.ErrorExist)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }

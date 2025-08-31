@@ -85,7 +85,7 @@ public class MacroRecommendationController: ControllerBase
         return Ok(result);
     }
 
-    [HttpPatch("latest")]
+    [HttpPost("latest")]
     public async Task<IActionResult> UpdateLatest([FromBody] UpdateLatestMacroDto updateLatestMacroDto)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))

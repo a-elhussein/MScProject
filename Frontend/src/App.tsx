@@ -10,7 +10,9 @@ import LogPage from "@/pages/LogPage.tsx";
 import RequireProfile from "@/components/RequireProfile.tsx";
 import UserProfilePage from "@/pages/UserProfilePage.tsx";
 import TrendsPage from "@/pages/TrendsPage.tsx";
-
+import RequireAdmin from "@/components/RequireAdmin.tsx";
+import AdminDashboardPage from "@/pages/AdminDashboardPage.tsx";
+import { Toaster } from "sonner";
 
 const RequireAuth = ({children}: { children: ReactNode }) => {
     const location = useLocation();
@@ -32,59 +34,70 @@ const PublicOnly = ({ children }: { children: ReactNode }) => {
 
 function App() {
     return (
-        <Routes>
-            <Route path="/" element={<Navigate to="/login" replace/>}/>
-            <Route path="/login" element={ <PublicOnly><LoginPage/></PublicOnly>}/>
-            <Route path="/register" element={<PublicOnly><RegisterPage/></PublicOnly>}/>
+        <>
+            <Routes>
+                <Route path="/" element={<Navigate to="/login" replace/>}/>
+                <Route path="/login" element={ <PublicOnly><LoginPage/></PublicOnly>}/>
+                <Route path="/register" element={<PublicOnly><RegisterPage/></PublicOnly>}/>
 
-            <Route
-                path="/dashboard"
-                element={
-                    <RequireAuth>
-                        <AppLayout>
-                            <DashboardPage/>
-                        </AppLayout>
-                    </RequireAuth>
-                }
-            />
-            <Route
-                path="/log"
-                element={
-                    <RequireAuth>
-                        <RequireProfile>
-                        <AppLayout>
-                            <LogPage/>
-                        </AppLayout>
-                        </RequireProfile>
-                    </RequireAuth>
-                }
-            />
-            <Route
-                path="/user-profile"
-                element={
-                    <RequireAuth>
-                        <AppLayout>
-                            <UserProfilePage/>
-                        </AppLayout>
-                    </RequireAuth>
-                }
-            />
-            <Route
-                path="/trends"
-                element={
-                    <RequireAuth>
-                        <RequireProfile>
+                <Route
+                    path="/dashboard"
+                    element={
+                        <RequireAuth>
                             <AppLayout>
-                                <TrendsPage/>
+                                <DashboardPage/>
                             </AppLayout>
-                        </RequireProfile>
-                    </RequireAuth>
-                }
-            />
+                        </RequireAuth>
+                    }
+                />
+                <Route
+                    path="/log"
+                    element={
+                        <RequireAuth>
+                            <RequireProfile>
+                                <AppLayout>
+                                    <LogPage/>
+                                </AppLayout>
+                            </RequireProfile>
+                        </RequireAuth>
+                    }
+                />
+                <Route
+                    path="/user-profile"
+                    element={
+                        <RequireAuth>
+                            <AppLayout>
+                                <UserProfilePage/>
+                            </AppLayout>
+                        </RequireAuth>
+                    }
+                />
+                <Route
+                    path="/trends"
+                    element={
+                        <RequireAuth>
+                            <RequireProfile>
+                                <AppLayout>
+                                    <TrendsPage/>
+                                </AppLayout>
+                            </RequireProfile>
+                        </RequireAuth>
+                    }
+                />
+                <Route
+                    path="/admin"
+                    element={
+                        <RequireAdmin>
+                            <AdminDashboardPage />
+                        </RequireAdmin>
+                    }
+                />
 
-            <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
-        </Routes>
-    )
+                <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
+            </Routes>
+            <Toaster position="top-right" richColors />
+        </>
+    );
 }
 
 export default App

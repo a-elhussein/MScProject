@@ -42,7 +42,6 @@ export default function MacroTrendChart() {
 
     return (
         <div className="w-full h-[400px] bg-card p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Macro Trends</h3>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" />

@@ -12,4 +12,6 @@ public interface IUserRepository
     Task<ApplicationResponseModel<List<GetUserDetailsDto>>> GetAllUsersAsync();
     Task<ApplicationResponseModel<string>> EditActiveStatusAsync(int userId, UpdateUserStatusRequestDto updateUserStatusRequestDto);
     Task<ApplicationResponseModel<string?>> SetAdminRoleAsync(int userId);
+    Task<ApplicationResponseModel<string?>> RegisterAdminAsync(RegisterRequestDto registerRequestDto);
+    Task<ApplicationResponseModel<UserInfoDto>> GetUserByIdAsync(int userId);
 }

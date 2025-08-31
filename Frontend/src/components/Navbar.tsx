@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { User } from "lucide-react";
+import GamificationBadge from "@/components/GamificationBadge.tsx";
+
 
 export default function Navbar() {
     const nav = useNavigate();
@@ -28,7 +30,7 @@ export default function Navbar() {
     }
 
     return (
-        <header className="bg-card border-b">
+        <header className="bg-card border-b text-black">
             <div className="mx-auto max-w-5xl h-14 grid grid-cols-3 items-center px-4">
                 <div className="justify-self-start">
                     <Link to="/dashboard" className="font-semibold hover:opacity-90">
@@ -43,7 +45,7 @@ export default function Navbar() {
                                 <NavigationMenuLink asChild>
                                     <Link
                                         to="/dashboard"
-                                        className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
+                                        className="px-3 py-2 rounded-md text-sm  text-black hover:text-black no-underline"
                                     >
                                         Dashboard
                                     </Link>
@@ -55,7 +57,7 @@ export default function Navbar() {
                                         <NavigationMenuLink asChild>
                                             <Link
                                                 to="/log"
-                                                className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
+                                                className="px-3 py-2 rounded-md text-sm text-black hover:text-black no-underline"
                                             >
                                                 Log Food
                                             </Link>
@@ -65,7 +67,7 @@ export default function Navbar() {
                                         <NavigationMenuLink asChild>
                                             <Link
                                                 to="/trends"
-                                                className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground"
+                                                className="px-3 py-2 rounded-md text-sm text-black hover:text-black no-underline"
                                             >
                                                 Trends
                                             </Link>
@@ -78,6 +80,7 @@ export default function Navbar() {
                 </div>
 
                 <div className="justify-self-end flex items-center gap-2">
+                    <GamificationBadge />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="gap-2">
@@ -92,7 +95,6 @@ export default function Navbar() {
                             <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-
                     <Sheet>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="sm" className="md:hidden">

@@ -41,7 +41,7 @@ export default function UserProfileEditor() {
     onSuccess: (updated) => {
       setProfile(updated);
       qc.invalidateQueries({ queryKey: ["userProfile"] });
-      toast.success("Profile updated");
+      toast.success("Profile updated, check your new macros!");
       const today = new Date().toISOString().split("T")[0];
       api.post("/api/MacroRecommendation/recommend", { day: today })
           .then(() => {

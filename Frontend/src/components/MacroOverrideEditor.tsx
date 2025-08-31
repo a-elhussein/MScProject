@@ -79,15 +79,16 @@ export default function MacroOverrideEditor({open, onClose, onSaved}: MacroOverr
     // --- PATCH request to update latest macro ---
     const updateMutation = useMutation<void, Error, UpdateMacroDto>({
         mutationFn: async (payload: UpdateMacroDto) => {
-            const res = await api.patch("/api/MacroRecommendation/latest", payload);
+            const res = await api.post("/api/MacroRecommendation/latest", payload);
             if (res.data.errorExist) throw new Error(res.data.errorMessage ?? "Update failed");
             return;
         },
         onSuccess: async () => {
             toast.success("Macro updated successfully");
-            qc.invalidateQueries({ queryKey: ["latestMacro"] });
-            await onSaved(); // <-- This triggers the Dashboard refetch
-            onClose(); // optional: closes dialog after saving
+            await qc.invalidateQueries({queryKey: ["macroTrends"]});
+            await qc.invalidateQueries({queryKey: ["latestMacro"]});
+            await onSaved();
+            onClose();
         },
         onError: (err) => {
             toast.error(err.message);

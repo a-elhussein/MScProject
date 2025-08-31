@@ -1,4 +1,5 @@
 import {useMemo, useState} from "react";
+import { Navigate } from "react-router-dom";
 import axios from "@/lib/axios.ts";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button.tsx";
@@ -22,6 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select.tsx";
 import MacroOverrideEditor from "@/components/MacroOverrideEditor.tsx";
+import {useAuth} from "@/context/useAuth.tsx";
 
 
 type MacroRec = {
@@ -255,7 +257,7 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
 export default function DashboardPage() {
     const [profileOpen, setProfileOpen] = useState(false);
     const [overrideOpen, setOverrideOpen] = useState(false);
-
+    const { isAdmin } = useAuth();
     const {
         data: latestData,
         isLoading: latestLoading,
@@ -329,14 +331,18 @@ export default function DashboardPage() {
         ];
     }, [macros, consumed]);
 
+    if (isAdmin) {
+        return <Navigate to="/admin" replace />;
+    }
     return (
+
         <div className="grid gap-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-xl font-semibold">Dashboard</h1>
+                <h1 className="text-4xl font-semibold w-full text-center">Dashboard</h1>
             </div>
 
             {/* If we have no recommendation yet, prompt to complete profile */}
-            {!loading && !macros && (
+            {!isAdmin && !loading && !macros && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Finish setup to get your daily targets</CardTitle>

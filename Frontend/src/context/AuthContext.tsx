@@ -3,6 +3,7 @@ import {jwtDecode} from "jwt-decode";
 import {AuthContext, type UserProfile} from "./AuthContextInstance";
 import api from "@/lib/axios";
 import {useQueryClient} from "@tanstack/react-query";
+import {toast} from "sonner";
 interface AuthUser {
     userId: string;
     username: string;
@@ -13,10 +14,11 @@ interface AuthUser {
 
 
 interface JwtPayload {
-    nameid: string;
-    unique_name: string;
-    email: string;
-    role: string | string[];
+    [key: string]: unknown;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": string;
+    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string | string[];
     exp: number;
 }
 
@@ -25,28 +27,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const qc = useQueryClient();
 
-    useEffect(() => {
-        const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-        if (token) {
-            try {
-                const decodedToken = jwtDecode<JwtPayload>(token);
-                if (decodedToken.exp * 1000 < Date.now()) {
-                    logout();
-                } else {
-                    const decodedUser: AuthUser = {
-                        userId: decodedToken.nameid,
-                        username: decodedToken.unique_name,
-                        email: decodedToken.email,
-                        roles: Array.isArray(decodedToken.role) ? decodedToken.role : [decodedToken.role],
-                        exp: decodedToken.exp,
-                    };
-                    setUser(decodedUser);
-                }
-            } catch {
+useEffect(() => {
+    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+    if (token) {
+        try {
+            const decodedToken = jwtDecode<JwtPayload>(token);
+            if (decodedToken.exp * 1000 < Date.now()) {
                 logout();
+            } else {
+                const rawRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+                const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
+                const decodedUser: AuthUser = {
+                    userId: decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] as string,
+                    username: decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] as string,
+                    email: decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] as string,
+                    roles,
+                    exp: decodedToken.exp,
+                };
+                setUser(decodedUser);
             }
+        } catch {
+            logout();
         }
-    }, []);
+    }
+}, []);
 
     useEffect(() => {
         const token = sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -70,14 +74,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // 4) decode and set user
         const decodedToken = jwtDecode<JwtPayload>(token);
+        console.log("Decoded token:", decodedToken);
+        const rawRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        const roles = Array.isArray(rawRole) ? rawRole : [rawRole];
         const decoded: AuthUser = {
-            userId: decodedToken.nameid,
-            username: decodedToken.unique_name,
-            email: decodedToken.email,
-            roles: Array.isArray(decodedToken.role) ? decodedToken.role : [decodedToken.role],
+            userId: decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] as string,
+            username: decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] as string,
+            email: decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] as string,
+            roles,
             exp: decodedToken.exp,
         };
         setUser(decoded);
+
+        try {
+            const res = await api.get("/api/user/userinfo");
+            const userInfo = res.data?.data;
+
+            if (userInfo?.isActive) {
+                toast.error("Your account is inactive.", {
+                    duration: 5000,
+                });
+                setTimeout(() => logout(), 100);
+                return;
+            }
+
+            setUserProfile(userInfo);
+        } catch {
+            setUserProfile(null);
+            logout();
+            return;
+        }
 
         // 5) preload profile so UI reacts right away
         try {
@@ -86,6 +112,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUserProfile(profile ?? null);
         } catch {
             setUserProfile(null);
+        }
+
+        if (roles.some(role => role.toLowerCase() === "admin")) {
+            window.location.href = "/admin";
+        } else {
+            window.location.href = "/dashboard";
         }
     };
 

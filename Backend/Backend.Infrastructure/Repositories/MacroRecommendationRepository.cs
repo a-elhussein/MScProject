@@ -166,37 +166,27 @@ public class MacroRecommendationRepository: IMacroRecommendationRepository
             };
         }
 
-        var latestMacro = await _dbContext.MacroRecommendation
-            .Where(m => m.UserId == userId)
-            .OrderByDescending(m => m.Day)
-            .FirstOrDefaultAsync();
-
-        if (latestMacro == null)
+        var newMacro = new MacroRecommendation
         {
-            return new ApplicationResponseModel<MacroRecommendationResponseDto>
-            {
-                Data = null,
-                ErrorExist = true,
-                ErrorMessage = "No macro recommendation found for the user."
-            };
-        }
-        
-        latestMacro.CaloriesKcal = dto.CaloriesKcal;
-        latestMacro.ProteinG = dto.ProteinG;
-        latestMacro.FatG = dto.FatG;
-        latestMacro.CarbsG = dto.CarbG;
-        latestMacro.CreatedAt = DateTime.UtcNow;
-
+            UserId = userId,
+            Day = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow,
+            CaloriesKcal = dto.CaloriesKcal,
+            ProteinG = dto.ProteinG,
+            FatG = dto.FatG,
+            CarbsG = dto.CarbG
+        };
+        _dbContext.MacroRecommendation.Add(newMacro);
         await _dbContext.SaveChangesAsync();
 
         var response = new MacroRecommendationResponseDto
         {
-            Day = latestMacro.Day.ToString("yyyy-MM-dd"),
-            CaloriesKcal = latestMacro.CaloriesKcal,
-            ProteinG = latestMacro.ProteinG,
-            CarbsG = latestMacro.CarbsG,
-            FatG = latestMacro.FatG,
-            CreatedAt = latestMacro.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+            Day = newMacro.Day.ToString("yyyy-MM-dd"),
+            CaloriesKcal = newMacro.CaloriesKcal,
+            ProteinG = newMacro.ProteinG,
+            CarbsG = newMacro.CarbsG,
+            FatG = newMacro.FatG,
+            CreatedAt = newMacro.CreatedAt.ToString("yyyy-MM-dd HH:mm")
         };
 
         return new ApplicationResponseModel<MacroRecommendationResponseDto>

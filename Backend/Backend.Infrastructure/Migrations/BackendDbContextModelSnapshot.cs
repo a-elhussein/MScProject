@@ -60,7 +60,7 @@ namespace Backend.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            IsActive = 1,
+                            IsActive = 0,
                             IsDeleted = 0,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
@@ -68,7 +68,7 @@ namespace Backend.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            IsActive = 1,
+                            IsActive = 0,
                             IsDeleted = 0,
                             Name = "User",
                             NormalizedName = "USER"
@@ -199,6 +199,42 @@ namespace Backend.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Food");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Gamification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CurrentStreak")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("LastMealLogDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Xp")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Gamification");
                 });
 
             modelBuilder.Entity("Backend.Core.Models.Domain.MacroRecommendation", b =>
@@ -486,6 +522,17 @@ namespace Backend.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Gamification", b =>
+                {
+                    b.HasOne("Backend.Core.Models.Domain.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("Backend.Core.Models.Domain.MacroRecommendation", b =>
