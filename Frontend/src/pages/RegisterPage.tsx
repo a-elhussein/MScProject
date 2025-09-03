@@ -13,13 +13,11 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: { pathname?: string } } }
 
-  // controlled inputs
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  // ui state
-  const [remember, setRemember] = useState(false) // store token in local (true) or session (false)
+  const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -76,6 +74,7 @@ export default function RegisterPage() {
 
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
+          <p className="text-xs text-muted-foreground">Must be 8–64 characters</p>
           <Input
             id="password"
             type="password"
@@ -84,6 +83,9 @@ export default function RegisterPage() {
             placeholder="••••••••"
             autoComplete="new-password"
           />
+          {password.length > 0 && (password.length < 8 || password.length > 64) && (
+              <p className="text-sm text-red-600">Password must be 8–64 characters long</p>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600" aria-live="polite">{error}</p>}

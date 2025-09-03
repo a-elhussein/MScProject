@@ -4,7 +4,6 @@ import api from "@/lib/axios";
 import { toast } from "sonner";
 import {Dialog, DialogContent} from "@/components/ui/dialog.tsx";
 
-// --- Types for API responses ---
 type MacroRecommendation = {
     day: string;
     caloriesKcal: number;
@@ -38,7 +37,6 @@ type UpdateMacroDto = {
 };
 
 
-// --- Main Component ---
 export default function MacroOverrideEditor({open, onClose, onSaved}: MacroOverrideEditorProps) {
     const qc = useQueryClient();
 
@@ -47,7 +45,6 @@ export default function MacroOverrideEditor({open, onClose, onSaved}: MacroOverr
     const [fat, setFat] = useState<number>(0);
     const [carbs, setCarbs] = useState<number>(0);
 
-    // --- Fetch latest macro recommendation ---
     const { data: latestMacro, isLoading: loadingMacro } = useQuery<MacroRecommendation, Error, MacroRecommendation, string[]>({
         queryKey: ["latestMacro"],
         queryFn: async () => {
@@ -66,7 +63,6 @@ export default function MacroOverrideEditor({open, onClose, onSaved}: MacroOverr
         }
     }, [latestMacro]);
 
-    // --- Fetch user profile to calculate protein/fat/carbs ---
     const { data: userProfile } = useQuery<UserProfile, Error>({
         queryKey: ["userProfile"],
         queryFn: async () => {
@@ -76,7 +72,6 @@ export default function MacroOverrideEditor({open, onClose, onSaved}: MacroOverr
         },
     });
 
-    // --- PATCH request to update latest macro ---
     const updateMutation = useMutation<void, Error, UpdateMacroDto>({
         mutationFn: async (payload: UpdateMacroDto) => {
             const res = await api.post("/api/MacroRecommendation/latest", payload);

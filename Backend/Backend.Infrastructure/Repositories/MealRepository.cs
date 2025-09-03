@@ -143,6 +143,53 @@ namespace Backend.Infrastructure.Repositories
             }
         }
 
+        public async Task<ApplicationResponseModel<List<DayTotalsResponseDto>>> GetAllTotalsAsync(int userId, int days = 30)
+        {
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                var fromDate = today.AddDays(-days + 1); // inclusive
+
+                var startUtc = fromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+                var endUtc = today.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc); // exclusive
+
+                var items = (await _dbContext.MealItem
+                        .Where(i => i.Meal.UserId == userId &&
+                                    i.IsDeleted == IsDeleted.NotDeleted &&
+                                    i.Meal.ConsumedAtUtc >= startUtc &&
+                                    i.Meal.ConsumedAtUtc < endUtc)
+                        .GroupBy(i => DateOnly.FromDateTime(i.Meal.ConsumedAtUtc))
+                        .Select(g => new
+                        {
+                            Day = g.Key,
+                            Calories = g.Sum(x => x.CaloriesKcal),
+                            Protein = g.Sum(x => x.ProteinG),
+                            Carbs = g.Sum(x => x.CarbsG),
+                            Fat = g.Sum(x => x.FatG)
+                        })
+                        .ToListAsync())
+                    .Select(x => new DayTotalsResponseDto
+                    {
+                        Day = x.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        Totals = new TotalsDto
+                        {
+                            CaloriesKcal = x.Calories,
+                            ProteinG = x.Protein,
+                            CarbsG = x.Carbs,
+                            FatG = x.Fat
+                        }
+                    })
+                    .OrderBy(x => x.Day)
+                    .ToList();
+
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                return Fail<List<DayTotalsResponseDto>>(ex.Message);
+            }
+        }
+        
         public async Task<ApplicationResponseModel<DayItemsResponseDto>> GetDayItemsAsync(int userId, string? day)
         {
             try
@@ -190,7 +237,7 @@ namespace Backend.Infrastructure.Repositories
 
                 return Ok(new DayItemsResponseDto
                 {
-                    Day = d.ToString("yyyy-MM-dd"),
+                    Day = d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                     Items = items
                 });
             }

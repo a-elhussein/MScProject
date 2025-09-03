@@ -8,7 +8,7 @@ import AddFoodByBarcode from "@/components/AddFoodByBarcode";
 import EditMealItemDialog, {type MealItemForEdit} from "@/components/EditMealItemDialog";
 
 type AppResponse<T> = { data: T; errorExist: boolean; errorMessage: string | null };
-type MealTypeStr = "Breakfast" | "Lunch" | "Dinner";
+type MealTypeStr = "Breakfast" | "Lunch" | "Dinner" | "Snack";
 type MealItem = {
     mealItemId: number;
     mealId: number;
@@ -23,23 +23,27 @@ type MealItem = {
     barcode: string;
 };
 type ItemsResponse = { day: string; items: MealItem[] };
-type MealType = 0 | 1 | 2; // 0=Breakfast,1=Lunch,2=Dinner
+type MealType = 0 | 1 | 2 | 3;
 
 const mealTone: Record<MealTypeStr, string> = {
     Breakfast: "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-900",
     Lunch: "bg-sky-50 border-sky-200 dark:bg-sky-950 dark:border-sky-900",
     Dinner: "bg-violet-50 border-violet-200 dark:bg-violet-950 dark:border-violet-900",
+    Snack: "bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-900",
 };
 
 export default function LogPage() {
     const qc = useQueryClient();
     const [addOpen, setAddOpen] = useState<MealType | null>(null);
     const [editing, setEditing] = useState<MealItemForEdit | null>(null);
+    const [selectedDate, setSelectedDate] = useState(() => new Date());
+
+    const dateStr = selectedDate.toISOString().slice(0, 10);
 
     const itemsQuery = useQuery({
-        queryKey: ["mealItems"],
+        queryKey: ["mealItems", dateStr],
         queryFn: async () => {
-            const res = await api.get<AppResponse<ItemsResponse>>("/api/Meals/Items");
+            const res = await api.get<AppResponse<ItemsResponse>>(`/api/Meals/Items?day=${dateStr}`);
             if (res.data.errorExist || !res.data.data) {
                 throw new Error(res.data.errorMessage ?? "Failed to load meal items");
             }
@@ -52,6 +56,7 @@ export default function LogPage() {
             Breakfast: {items: [], calTotal: 0},
             Lunch: {items: [], calTotal: 0},
             Dinner: {items: [], calTotal: 0},
+            Snack: {items: [], calTotal: 0}
         };
         const list = itemsQuery.data?.items ?? [];
         for (const it of list) {
@@ -66,19 +71,21 @@ export default function LogPage() {
             await api.delete(`/api/Meals/items/${mealItemId}`);
         },
         onSuccess: () => {
-            qc.invalidateQueries({queryKey: ["mealItems"]});
-            qc.invalidateQueries({queryKey: ["mealsTotals"]});
+            qc.invalidateQueries({ queryKey: ["mealItems", selectedDate] });
+            qc.invalidateQueries({ queryKey: ["mealsTotals", selectedDate] });
         },
     });
 
     async function handleAdded() {
-        qc.invalidateQueries({queryKey: ["mealItems"]});
+        qc.invalidateQueries({ queryKey: ["mealItems", selectedDate] });
+        qc.invalidateQueries({ queryKey: ["gamification"] });
     }
 
     const cards: Array<{ key: MealTypeStr; title: string; mt: MealType }> = [
         {key: "Breakfast", title: "Breakfast", mt: 0},
         {key: "Lunch", title: "Lunch", mt: 1},
         {key: "Dinner", title: "Dinner", mt: 2},
+        {key: "Snack", title: "Snack and Other", mt: 3},
     ];
 
     return (
@@ -88,7 +95,15 @@ export default function LogPage() {
                 {itemsQuery.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
                 {itemsQuery.isError && <p className="text-sm text-red-600">Couldn’t load items.</p>}
             </div>
-
+            <div className="flex justify-center gap-4 items-center">
+                <Button onClick={() => setSelectedDate(prev => new Date(prev.getTime() - 86400000))}>
+                    ← Previous
+                </Button>
+                <span className="text-sm font-medium">{selectedDate.toDateString()}</span>
+                <Button onClick={() => setSelectedDate(prev => new Date(prev.getTime() + 86400000))}>
+                    Next →
+                </Button>
+            </div>
             {cards.map(({key, title, mt}) => {
                 const calTotal = grouped[key]?.calTotal ?? 0;
                 const items = grouped[key]?.items ?? [];
@@ -105,9 +120,7 @@ export default function LogPage() {
                                 <ul className="divide-y divide-border">
                                   {items.map((it) => (
                                     <li key={it.mealItemId} className="py-3">
-                                      {/* Mobile: stacked; Desktop (md+): 3 columns with left actions */}
                                       <div className="md:grid md:grid-cols-3 md:items-center md:gap-3">
-                                        {/* Desktop left: actions (hidden on mobile) */}
                                         <div className="hidden md:flex items-center gap-2">
                                           <Button
                                             size="sm"
@@ -135,7 +148,6 @@ export default function LogPage() {
                                           </Button>
                                         </div>
 
-                                        {/* Middle content (both mobile & desktop) */}
                                         <div className="text-center md:justify-self-center md:text-center min-w-0">
                                           <div className="font-medium break-words">{it.name}</div>
                                           <div className="text-xs text-muted-foreground">
@@ -143,7 +155,6 @@ export default function LogPage() {
                                           </div>
                                         </div>
 
-                                        {/* Mobile actions: centered under content; hidden on desktop */}
                                         <div className="mt-2 flex justify-center gap-2 md:hidden">
                                           <Button
                                             size="sm"
@@ -171,7 +182,6 @@ export default function LogPage() {
                                           </Button>
                                         </div>
 
-                                        {/* Desktop right: spacer to keep center true */}
                                         <div className="hidden md:block" />
                                       </div>
                                     </li>

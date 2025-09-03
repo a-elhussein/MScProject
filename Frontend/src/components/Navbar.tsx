@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/lib/auth";
 import { useUserProfile } from "@/context/useUserProfile";

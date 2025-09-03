@@ -33,6 +33,11 @@ namespace Backend.API.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody]RegisterRequestDto registerRequestDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var registerUser = await _userRepository.RegisterAsync(registerRequestDto);
 
             if (registerUser.ErrorExist)
@@ -98,9 +103,20 @@ namespace Backend.API.Controllers
                     ErrorMessage = "Invalid or missing user ID"
                 });
             }
+            
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
 
             var resetPassword = await _userRepository.ResetPasswordAsync(userId.ToString(), resetUserPasswordDto);
-            return resetPassword.ErrorExist ? BadRequest(resetPassword.ErrorMessage) : Ok(resetPassword);
+            if (resetPassword.ErrorExist)
+            {
+                return BadRequest(resetPassword); 
+            }
+
+            return Ok(resetPassword);
         }
 
         [HttpPost]

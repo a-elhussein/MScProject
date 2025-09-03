@@ -10,6 +10,7 @@ public interface IMealRepository
 {
     Task<ApplicationResponseModel<AddMealItemResponseDto>>AddItemAsync(int userId, AddMealItemRequestDto dto);
     Task<ApplicationResponseModel<DayTotalsResponseDto>>GetDayTotalsAsync(int userId, string? day);
+    Task<ApplicationResponseModel<List<DayTotalsResponseDto>>> GetAllTotalsAsync(int userId, int days = 30);
     Task<ApplicationResponseModel<DayItemsResponseDto>>GetDayItemsAsync(int userId, string? day);
     Task<ApplicationResponseModel<MealItemForDayDto>>UpdateItemAsync(int userId, int mealItemId, UpdateMealItemRequestDto dto);
     Task<ApplicationResponseModel<string>>DeleteItemAsync(int userId, int mealItemId);

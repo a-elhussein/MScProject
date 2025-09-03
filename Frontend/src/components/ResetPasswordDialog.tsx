@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {useEffect, useState} from "react";
 import { toast } from "sonner";
-import api from "@/lib/axios"; // Adjust if your axios import is different
+import api from "@/lib/axios";
 
 interface Props {
     open: boolean;
@@ -69,18 +69,25 @@ export default function ResetPasswordDialog({ open, onClose }: Props) {
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground">Must be 8–64 characters</p>
                     <Input
                         type="password"
                         placeholder="New Password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                     />
+                    {newPassword.length > 0 && (newPassword.length < 8 || newPassword.length > 64) && (
+                        <p className="text-sm text-red-600">Password must be 8–64 characters long</p>
+                    )}
                     <Input
                         type="password"
                         placeholder="Confirm New Password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+                    {confirmPassword.length > 0 && (confirmPassword.length < 8 || confirmPassword.length > 64) && (
+                        <p className="text-sm text-red-600">Password must be 8–64 characters long</p>
+                    )}
                     <Button className="w-full" onClick={handleReset} disabled={loading}>
                         {loading ? "Resetting..." : "Reset Password"}
                     </Button>

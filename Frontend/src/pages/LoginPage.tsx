@@ -7,6 +7,8 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import {login} from "@/api/auth.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {useAuth} from "@/context/useAuth.tsx";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -15,24 +17,28 @@ export default function LoginPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [remember, setRemember] = useState(false);
     const {login: loginWithContext} = useAuth();
 
     async function onSubmit(e: FormEvent) {
         e.preventDefault();
         setLoading(true);
-        setError(null);
         try {
             const token = await login(username, password);
             loginWithContext(token, remember);
             const redirectTo = location?.state?.from?.pathname ?? 'dashboard'
+            toast.success("Welcome back!");
             navigate(redirectTo, {replace: true});
-        } catch (err:unknown) {
-            const message =
-                err instanceof Error
-            ? err.message: typeof err === 'string' ? err : "Login failed"
-            setError(message);
+        } catch (err: unknown) {
+            const axiosError = err as AxiosError;
+
+            const rawMessage = axiosError?.response?.data;
+            const errorMsg =
+                typeof rawMessage === "string"
+                    ? rawMessage
+                    : "Login failed. Please try again.";
+
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -55,8 +61,6 @@ export default function LoginPage() {
                     <Label htmlFor="password">Password</Label>
                     <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
                 </div>
-
-                {error && <p className="text-sm text-red-600">{error}</p>}
 
                 <Button type={"submit"} className="w-full" disabled={loading}>
                     {loading ? 'Logging in…' : 'Log In'}

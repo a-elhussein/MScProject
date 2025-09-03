@@ -62,17 +62,13 @@ useEffect(() => {
     }, []);
 
     const login = async (token: string, remember: boolean) => {
-        // 1) clear any cached queries from the previous user
         qc.clear();
 
-        // 2) store token
         if (remember) localStorage.setItem("token", token);
         else sessionStorage.setItem("token", token);
 
-        // 3) set axios header immediately
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        // 4) decode and set user
         const decodedToken = jwtDecode<JwtPayload>(token);
         console.log("Decoded token:", decodedToken);
         const rawRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
@@ -105,7 +101,6 @@ useEffect(() => {
             return;
         }
 
-        // 5) preload profile so UI reacts right away
         try {
             const response = await api.get("/api/UserProfile/Get");
             const profile = response.data?.data;
@@ -126,7 +121,6 @@ useEffect(() => {
         setUser(null);
         setUserProfile(null);
 
-        // remove tokens
         try {
             localStorage.removeItem("token");
             sessionStorage.removeItem("token");
@@ -134,10 +128,8 @@ useEffect(() => {
             // Intentionally ignore storage errors (e.g., Safari private mode)
         }
 
-        // remove axios header
         delete api.defaults.headers.common["Authorization"];
 
-        // clear all cached queries
         qc.clear();
     };
 

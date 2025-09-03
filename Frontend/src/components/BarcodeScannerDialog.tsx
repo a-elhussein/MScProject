@@ -63,7 +63,6 @@ export default function BarcodeScannerDialog({ open, onClose, onDetected, title 
 
         prepare();
         return () => { cancelled = true; stop(); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
     async function start(deviceId?: string) {

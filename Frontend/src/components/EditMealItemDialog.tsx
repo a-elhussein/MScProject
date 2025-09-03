@@ -33,7 +33,6 @@ type FoodBase = {
     servingSizeG: number | null;
 };
 
-// Aggregated totals for today and latest goals
 type Totals = { caloriesKcal: number; proteinG: number; carbsG: number; fatG: number };
 
 type LatestRec = {
@@ -45,7 +44,6 @@ type LatestRec = {
   createdAt: string;
 };
 
-// Support 100g, serving, and 1g in the UI
 type Unit = "100g" | "serving" | "1g";
 
 function gramsFrom(unit: Unit, qty: number, serving: number | null) {
@@ -66,7 +64,7 @@ function pct(value: unknown, goal: unknown): number | null {
 
 function labelFromPct(p: number | null): "green" | "amber" | "red" {
   if (p == null) return "amber"; // unknown -> neutral
-  if (p < 75) return "green";
+  if (p <= 75) return "green";
   if (p <= 90) return "amber";
   return "red";
 }
@@ -95,18 +93,14 @@ type Props = {
 export default function EditMealItemDialog({ open, item, onClose }: Props) {
     const qc = useQueryClient();
 
-    // product meta
     const [servingSizeG, setServingSizeG] = useState<number | null>(null);
     const [food, setFood] = useState<FoodBase | null>(null);
 
-    // form state
     const [unit, setUnit] = useState<Unit>("100g");
     const [qty, setQty] = useState<number | "">(1);
 
-    // seed when opened
     useEffect(() => {
         if (!open || !item) return;
-        // lookup product to know if it has serving size
         (async () => {
             try {
                 const res = await api.post<AppResponse<FoodBase>>(`/api/FoodScan/refresh/${item.barcode}`);
@@ -123,13 +117,10 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
             }
         })();
 
-        // baseline default before serving is known
         setUnit("100g");
         setQty(Number((item.quantityGrams / 100).toFixed(2)));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, item]);
 
-    // refine defaults after serving is known
     useEffect(() => {
       if (!open || !item) return;
       if (servingSizeG && item.quantityGrams % servingSizeG === 0) {
@@ -138,7 +129,6 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
       }
     }, [servingSizeG, open, item]);
 
-    // Today totals
     const totalsQ = useQuery({
       queryKey: ["mealsTotals", "today"],
       queryFn: async (): Promise<Totals> => {
@@ -151,7 +141,6 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
       staleTime: 0,
     });
 
-    // Latest macro recommendation (goals)
     const goalsQ = useQuery({
       queryKey: ["macroLatest"],
       queryFn: async (): Promise<LatestRec> => {
@@ -169,7 +158,6 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
         totalsQ.refetch();
         goalsQ.refetch();
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
     const numericQty = useMemo(() => {
@@ -178,14 +166,12 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
       return Number.isFinite(n) ? n : 0;
     }, [qty]);
 
-    // Compute delta and after-save totals locally
     const deltaAndAfter = useMemo(() => {
       if (!food || !item || !totalsQ.data || !goalsQ.data || numericQty <= 0) return null;
 
       const totalsRaw = totalsQ.data!;
       const goalsRaw = goalsQ.data!;
 
-      // Coerce to numbers defensively in case API sends strings/nulls
       const totals = {
         caloriesKcal: Number(totalsRaw.caloriesKcal) || 0,
         proteinG:     Number(totalsRaw.proteinG)     || 0,
@@ -209,7 +195,7 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
 
       const newGrams = gramsFrom(unit, numericQty, servingSizeG);
       const oldGrams = item.quantityGrams;
-      const dG = newGrams - oldGrams; // can be negative
+      const dG = newGrams - oldGrams;
 
       const delta = {
         caloriesKcal: perG.caloriesKcal * dG,
@@ -242,12 +228,10 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
       return { delta, after, percents, labels };
     }, [food, item, totalsQ.data, goalsQ.data, numericQty, unit, servingSizeG]);
 
-    // Save: PATCH /api/Meals/items/{id} with { unit, quantity }
     const saveMutation = useMutation({
         mutationFn: async () => {
             if (!item) return;
             const n = typeof qty === "number" ? qty : Number(qty || 0);
-            // Convert 1g to 100g for backend compatibility
             const body = unit === "1g"
                 ? { unit: "100g", quantity: n / 100 }
                 : { unit, quantity: n };

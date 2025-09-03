@@ -78,7 +78,7 @@ export default function UserProfileEditor() {
     <form onSubmit={handleSubmit} className="space-y-4 p-4">
       <h2 className="text-xl font-semibold">Edit Profile</h2>
 
-      <div>
+      <div className="hidden">
         <label className="block text-sm font-medium">Date of Birth</label>
         <input
           type="date"
@@ -136,8 +136,16 @@ export default function UserProfileEditor() {
         </select>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium">Sex</label>
+      <div className="hidden">
+        <label className="block text-sm font-medium" >
+          Sex
+          <span
+            className="ml-1 inline-block text-xs text-gray-500 cursor-help"
+            title="Used only for formula accuracy. Refers to biological sex at birth, not gender identity."
+          >
+            (i)
+          </span>
+        </label>
         <select
           value={profile?.sex ?? data.sex}
           onChange={(e) => handleChange("sex", Number(e.target.value))}

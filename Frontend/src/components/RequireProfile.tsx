@@ -7,12 +7,10 @@ export default function RequireProfile({ children }: { children: ReactNode }) {
     const { data: profile, isLoading, isError } = useUserProfile();
     const location = useLocation();
 
-    if (isLoading) return null; // or a spinner/skeleton
-    // If failed for a reason other than "not found", you might still allow entry or handle differently.
+    if (isLoading) return null;
     if (isError) return <Navigate to="/dashboard" replace state={{ from: location, reason: "profileError" }} />;
 
     if (!profile) {
-        // No profile -> send user to dashboard (or a dedicated /profile screen)
         return <Navigate to="/dashboard" replace state={{ from: location, reason: "noProfile" }} />;
     }
 

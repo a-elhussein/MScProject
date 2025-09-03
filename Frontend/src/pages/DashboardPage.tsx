@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import axios from "@/lib/axios.ts";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button.tsx";
-import { PencilLine } from "lucide-react";
+import { PencilLine, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
@@ -70,7 +70,6 @@ function toneClassForPct(pct: number) {
 
 
 function todayDateOnly() {
-    // ISO date-only (yyyy-mm-dd). Good enough for the recommend endpoint.
     return new Date().toISOString().split("T")[0];
 }
 
@@ -78,17 +77,16 @@ function todayDateOnly() {
 type ProfileDialogProps = {
     open: boolean;
     onClose: () => void;
-    onSaved: () => Promise<void>; // called after we create/update + recommend to refresh dashboard
+    onSaved: () => Promise<void>;
 };
 
 function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
-    // simple local state; HTML validation handles ranges
     const [dateOfBirth, setDob] = useState("");
     const [heightCm, setHeight] = useState<number | "">("");
     const [weightKg, setWeight] = useState<number | "">("");
-    const [activityLevel, setActivity] = useState("1"); // 0..4
-    const [goal, setGoal] = useState("1"); // 0=cut,1=maintain,2=bulk
-    const [sex, setSex] = useState("0"); // 0..2
+    const [activityLevel, setActivity] = useState("1");
+    const [goal, setGoal] = useState("1");
+    const [sex, setSex] = useState("0");
     const [busy, setBusy] = useState(false);
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const qc = useQueryClient();
@@ -106,7 +104,6 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
         if (!canSubmit || busy) return;
         setBusy(true);
         try {
-            // 1) create or update profile
             await axios.post("/api/UserProfile/CreateOrUpdate", {
                 dateOfBirth,
                 heightCm: Number(heightCm),
@@ -117,12 +114,10 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
                 sex: Number(sex),
             });
 
-            // 2) trigger a recommendation for today
             await axios.post("/api/MacroRecommendation/recommend", {
                 day: todayDateOnly(),
             });
 
-            // 3) update caches so the whole app reacts immediately (nav + dashboard)
             qc.setQueryData(["userProfile"], {
                 dateOfBirth,
                 heightCm: Number(heightCm),
@@ -136,7 +131,6 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
             await qc.invalidateQueries({queryKey: ["macroLatest"]});
             await qc.invalidateQueries({queryKey: ["mealsTotals", "today"]});
 
-            // 3) tell parent to refetch dashboard data
             await onSaved();
             onClose();
         } catch (e) {
@@ -226,7 +220,20 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
                     </div>
 
                     <div className="grid gap-1">
-                        <label className="text-sm">Sex</label>
+                        <label className="text-sm flex items-center">
+                            Sex
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="w-4 h-4 ml-1 text-gray-500 hover:text-foreground" />
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" className="max-w-xs text-sm">
+                                        This is for nutritional formulas and refers to biological sex at birth.
+                                        It is not used to define or assume gender identity.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </label>
                         <Select value={sex} onValueChange={setSex}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select sex"/>
@@ -234,7 +241,6 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
                             <SelectContent>
                                 <SelectItem value="0">Male</SelectItem>
                                 <SelectItem value="1">Female</SelectItem>
-                                <SelectItem value="2">Other</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -341,7 +347,6 @@ export default function DashboardPage() {
                 <h1 className="text-4xl font-semibold w-full text-center">Dashboard</h1>
             </div>
 
-            {/* If we have no recommendation yet, prompt to complete profile */}
             {!isAdmin && !loading && !macros && (
                 <Card>
                     <CardHeader>
@@ -356,11 +361,10 @@ export default function DashboardPage() {
                 </Card>
             )}
 
-            {/* When we have data, show comparison */}
            <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Recommended</CardTitle>
+                        <CardTitle className="items-center">Recommended</CardTitle>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -378,19 +382,19 @@ export default function DashboardPage() {
                         {!loading && macros && (
                             <div className="grid gap-2">
                                 <div className="flex items-center justify-between">
-                                    <span>Calories🔥</span>
+                                    <span>🔥 Calories</span>
                                     <Badge variant="outline">{fmt(macros.caloriesKcal)} kcal</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span>Protein🥩</span>
+                                    <span>🥩 Protein</span>
                                     <Badge variant="outline">{fmt(macros.proteinG)} g</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span>Carbs🍚</span>
+                                    <span>🍚 Carbs</span>
                                     <Badge variant="outline">{fmt(macros.carbsG)} g</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span>Fat🥑</span>
+                                    <span>🥜 Fat</span>
                                     <Badge variant="outline">{fmt(macros.fatG)} g</Badge>
                                 </div>
                             </div>
@@ -410,19 +414,19 @@ export default function DashboardPage() {
                         {!loading && consumed && (
                             <div className="grid gap-2">
                                 <div className="flex items-center justify-between">
-                                    <span>Calories</span>
+                                    <span>🔥 Calories</span>
                                     <Badge variant="secondary">{fmt(consumed.caloriesKcal)} kcal</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span>Protein</span>
+                                    <span>🥩 Protein</span>
                                     <Badge variant="secondary">{fmt(consumed.proteinG)} g</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span>Carbs</span>
+                                    <span>🍚 Carbs</span>
                                     <Badge variant="secondary">{fmt(consumed.carbsG)} g</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span>Fat</span>
+                                    <span>🥜 Fat</span>
                                     <Badge variant="secondary">{fmt(consumed.fatG)} g</Badge>
                                 </div>
                             </div>
@@ -434,7 +438,6 @@ export default function DashboardPage() {
                 </Card>
             </div>
 
-            {/* Delta card (only if both sides exist) */}
             {rows.length > 0 && (
                 <Card>
                     <CardHeader>
@@ -447,7 +450,7 @@ export default function DashboardPage() {
                             const tone = toneClassForPct(pct);
                             const barTone =
                                 pct >= 90 ? 'bg-red-500' :
-                                    pct >= 70 ? 'bg-amber-300' :
+                                    pct >= 75 ? 'bg-amber-300' :
                                         'bg-green-500';
                             return (
                                 <div key={r.label} className="space-y-1">
@@ -475,7 +478,6 @@ export default function DashboardPage() {
                 </Card>
             )}
 
-            {/* Profile dialog lives in this page (simple & local) */}
             <ProfileDialog
                 open={profileOpen}
                 onClose={() => setProfileOpen(false)}
