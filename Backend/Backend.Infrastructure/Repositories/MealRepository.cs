@@ -34,8 +34,7 @@ namespace Backend.Infrastructure.Repositories
                 // Food must exist in DB (controller should call OFF refresh first)
                 var food = await _dbContext.Set<Food>().FirstOrDefaultAsync(f => f.Barcode == dto.Barcode);
                 if (food is null) return Fail<AddMealItemResponseDto>("Food not found.");
-
-                // Convert unit+quantity -> grams (strict 'serving')
+                
                 var unit = (dto.Unit ?? "100g").Trim().ToLowerInvariant();
                 if (unit is not ("serving" or "100g" or "1g")) unit = "100g";
                 if (unit == "serving" && food.ServingSizeG is null)

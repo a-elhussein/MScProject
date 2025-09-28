@@ -94,6 +94,11 @@ export default function MacroOverrideEditor({open, onClose, onSaved}: MacroOverr
         e.preventDefault();
         if (!calories || !userProfile || !latestMacro) return;
 
+        if (calories < 800){
+            toast.error("Calories cannot be less than 800");
+            return;
+        }
+
         const difference = Math.abs(calories - (latestMacro as MacroRecommendation).caloriesKcal);
         if (difference > 1000) {
             toast.error("You can only override up to ±1000 kcal");

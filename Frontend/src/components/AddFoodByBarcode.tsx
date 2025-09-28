@@ -275,8 +275,8 @@ export default function AddFoodByBarcode({open, onClose, onAdded, mealType}: Pro
                                     </SelectContent>
                                 </Select>
                                 {!foodBase?.servingSizeG && (
-                                    <p className="text-xs text-muted-foreground">No serving size provided — using per
-                                        100 g.</p>
+                                    <p className="text-xs text-muted-foreground">No serving size provided
+                                        </p>
                                 )}
                             </div>
 

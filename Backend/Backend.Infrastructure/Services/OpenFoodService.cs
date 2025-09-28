@@ -40,12 +40,9 @@ public class OpenFoodService : IOpenFoodFactsService
         {
             if (string.IsNullOrWhiteSpace(barcode))
                 return Fail<FoodScanResponseDto>("Barcode is required.");
-
-            // DB-first: if we have the food and it's reasonably fresh, return immediately
+            
             var existing = await _db.Set<Food>().FirstOrDefaultAsync(f => f.Barcode == barcode);
-            // (Optionally add staleness check via UpdatedAt)
-
-            // Always fetch from OFF to keep data current (you can add a 30-day cache policy later)
+            
             var resp = await _httpClient.GetAsync($"{_baseUrl}{barcode}.json");
             if (!resp.IsSuccessStatusCode)
             {
@@ -56,7 +53,6 @@ public class OpenFoodService : IOpenFoodFactsService
                     {
                         Name = existing.ProductName ?? "Unknown product",
                         Barcode = existing.Barcode,
-                        // Use values from DB because OFF fetch failed and per100* variables are not defined here
                         CaloriesKcal = existing.EnergyKcal100G.HasValue
                             ? (int)Math.Round((double)existing.EnergyKcal100G.Value)
                             : 0,
@@ -255,12 +251,7 @@ public class OpenFoodService : IOpenFoodFactsService
         var m = Regex.Match(s, @"(\d+(?:\.\d+)?)\s*g", RegexOptions.IgnoreCase);
         return m.Success && double.TryParse(m.Groups[1].Value, out var grams) ? grams : (double?)null;
     }
-
-    // thresholds:
-    // - no goal -> green (avoid scaring users)
-    // - <= 95%  -> green
-    // - 96-100% -> yellow
-    // - > 100%  -> red
+    
     private static MacroLabel MakeLabel(int current, int add, int goal)
     {
         int after = current + add;

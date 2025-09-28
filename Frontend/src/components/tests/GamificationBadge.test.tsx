@@ -13,12 +13,7 @@ afterEach(() => {
 describe("GamificationBadge", () => {
     it("renders XP, level, and streak on success", async () => {
         mockedApi.get.mockResolvedValueOnce({
-            data: {
-                data: {
-                    xp: 50,
-                    level: 3,
-                    currentStreak: 5,
-                },
+            data: {data: {xp: 50, level: 3, currentStreak: 5,},
                 errorExist: false,
                 errorMessage: null,
             },

@@ -100,10 +100,7 @@ public class MealTotalsTests : IAsyncLifetime
         t1.FatG.Should().Be(10);
 
         //update
-        var updateResp = await _mealRepository.UpdateItemAsync(
-            3, 
-            mealItemId, 
-            new UpdateMealItemRequestDto
+        var updateResp = await _mealRepository.UpdateItemAsync(3, mealItemId, new UpdateMealItemRequestDto
             {
                 Unit = "100g",
                 Quantity = 1d 
