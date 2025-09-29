@@ -44,8 +44,8 @@ export default function RegisterPage() {
   return (
     <AuthLayout>
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold">Create your account</h1>
-        <p className="text-sm text-muted-foreground">Start tracking in minutes.</p>
+        <h1 className="text-2xl font-semibold">Create Your Account</h1>
+        <p className="text-sm text-muted-foreground">Start Tracking In Minutes.</p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
@@ -84,7 +84,7 @@ export default function RegisterPage() {
             autoComplete="new-password"
           />
           {password.length > 0 && (password.length < 8 || password.length > 64) && (
-              <p className="text-sm text-red-600">Password must be 8–64 characters long</p>
+              <p className="text-sm text-red-600">Password Must Be 8–64 Characters Long</p>
           )}
         </div>
 

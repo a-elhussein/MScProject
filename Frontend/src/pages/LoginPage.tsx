@@ -47,8 +47,8 @@ export default function LoginPage() {
     return (
         <AuthLayout>
             <div className="text-center space-y-2">
-                <h1 className="text-2xl font-semibold">Welcome back</h1>
-                <p className="text-sm text-muted-foreground">Track meals. Hit your goals.</p>
+                <h1 className="text-2xl font-semibold">Welcome Back</h1>
+                <p className="text-sm text-muted-foreground">Track Meals. Hit Your Goals.</p>
             </div>
 
             <form onSubmit={onSubmit} className="space-y-4">
@@ -73,13 +73,13 @@ export default function LoginPage() {
                         onCheckedChange={(v) => setRemember(Boolean(v))}
                     />
                     <Label htmlFor="remember" className="text-sm text-muted-foreground">
-                        Remember me
+                        Remember Me
                     </Label>
                 </div>
             </form>
 
             <p className="text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
+                Don't have An Account?{' '}
                 <Link to="/register" className="text-primary underline-offset-4 hover:underline">
                     Register
                 </Link>

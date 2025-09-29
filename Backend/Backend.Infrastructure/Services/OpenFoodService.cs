@@ -46,7 +46,6 @@ public class OpenFoodService : IOpenFoodFactsService
             var resp = await _httpClient.GetAsync($"{_baseUrl}{barcode}.json");
             if (!resp.IsSuccessStatusCode)
             {
-                // If network fails but we have a DB copy, use it
                 if (existing is not null)
                 {
                     return Ok(new FoodScanResponseDto
@@ -72,7 +71,6 @@ public class OpenFoodService : IOpenFoodFactsService
             using var doc = JsonDocument.Parse(raw);
             if (!doc.RootElement.TryGetProperty("product", out var product))
             {
-                // If OFF doesn't know it but we have DB, return DB
                 if (existing is not null)
                 {
                     return Ok(new FoodScanResponseDto
@@ -105,9 +103,8 @@ public class OpenFoodService : IOpenFoodFactsService
                 : "Unknown product";
 
             string? servingText = product.TryGetProperty("serving_size", out var sProp) ? sProp.GetString() : null;
-            double? servingG = ParseServingSizeInGrams(servingText); // null if missing/unparseable
-
-            // Upsert into DB
+            double? servingG = ParseServingSizeInGrams(servingText); 
+            
             if (existing is null)
             {
                 existing = new Food { Barcode = barcode };
@@ -152,11 +149,9 @@ public class OpenFoodService : IOpenFoodFactsService
 
         if (!doc.RootElement.TryGetProperty("product", out var product))
             return Fail<FoodMacroImpactResponseDto>("Product not found.");
-
-        // nutriments = where per-100g values live
+        
         var nutriments = product.TryGetProperty("nutriments", out var n) ? n : default;
-
-        // Try to read common kcal keys; API varies between products
+        
         double per100Protein = GetDouble(nutriments, "proteins_100g");
         double per100Carbs = GetDouble(nutriments, "carbohydrates_100g");
         double per100Fat = GetDouble(nutriments, "fat_100g");
@@ -167,9 +162,8 @@ public class OpenFoodService : IOpenFoodFactsService
             : "Unknown";
 
         string? servingText = product.TryGetProperty("serving_size", out var sProp) ? sProp.GetString() : null;
-        double? servingG = ParseServingSizeInGrams(servingText); // null if missing/unparseable
-
-        // --- 2) choose base grams from user's selection ---
+        double? servingG = ParseServingSizeInGrams(servingText); 
+        
         string unit = foodScanRequestDto.Unit?.Trim().ToLowerInvariant();
 
         if (unit == "serving" && servingG is null)
@@ -179,16 +173,14 @@ public class OpenFoodService : IOpenFoodFactsService
 
         double baseGrams = unit switch
         {
-            "serving" => servingG ?? 100, // if no serving size in API, fallback to 100g
+            "serving" => servingG ?? 100, 
             "1g" => 1,
-            _ => 100 // "100g" default
+            _ => 100 
         };
-
-        // Apply Quantity: total grams eaten for this scan
+        
         double totalGrams = baseGrams * foodScanRequestDto.Quantity;
-        double factor = totalGrams / 100.0; // convert per-100g to per-total
-
-        // Scaled macros (rounded ints for display)
+        double factor = totalGrams / 100.0; 
+        
         int addProtein = (int)Math.Round(per100Protein * factor);
         int addCarbs = (int)Math.Round(per100Carbs * factor);
         int addFat = (int)Math.Round(per100Fat * factor);
@@ -204,21 +196,18 @@ public class OpenFoodService : IOpenFoodFactsService
             FatG = addFat,
             ServingSizeG = servingG
         };
-
-        // --- 3) current goals = latest recommendation for this user ---
+        
         var latestGoals = await _macroRecommendationRepository.GetLatestAsync(userId);
         int goalProtein = latestGoals.Data?.ProteinG ?? 0;
         int goalCarbs = latestGoals.Data?.CarbsG ?? 0;
         int goalFat = latestGoals.Data?.FatG ?? 0;
         int goalCalories = latestGoals.Data?.CaloriesKcal ?? 0;
-
-        // --- 4) today's consumed totals ---
-        var totalsRes = await _mealRepository.GetDayTotalsAsync(userId, null); // null => today UTC
+        
+        var totalsRes = await _mealRepository.GetDayTotalsAsync(userId, null); 
         if (totalsRes.ErrorExist || totalsRes.Data is null)
             return Fail<FoodMacroImpactResponseDto>(totalsRes.ErrorMessage ?? "Could not load daily totals.");
-        var consumed = totalsRes.Data.Totals; // TotalsDto
-
-        // --- 5) labels per macro ---
+        var consumed = totalsRes.Data.Totals; 
+        
         var impact = new MacroImpactResult
         {
             Protein = MakeLabel(consumed.ProteinG, addProtein, goalProtein),
@@ -247,7 +236,6 @@ public class OpenFoodService : IOpenFoodFactsService
     private static double? ParseServingSizeInGrams(string? s)
     {
         if (string.IsNullOrWhiteSpace(s)) return null;
-        // Matches "150g", "1 cup (245 g)", "30 g", etc.
         var m = Regex.Match(s, @"(\d+(?:\.\d+)?)\s*g", RegexOptions.IgnoreCase);
         return m.Success && double.TryParse(m.Groups[1].Value, out var grams) ? grams : (double?)null;
     }

@@ -58,12 +58,12 @@ function gramsFrom(unit: Unit, qty: number, serving: number | null) {
 function pct(value: unknown, goal: unknown): number | null {
   const v = Number(value);
   const g = Number(goal);
-  if (!Number.isFinite(v) || !Number.isFinite(g) || g <= 0) return null; // not computable
+  if (!Number.isFinite(v) || !Number.isFinite(g) || g <= 0) return null;
   return Math.round((v / g) * 100);
 }
 
 function labelFromPct(p: number | null): "green" | "amber" | "red" {
-  if (p == null) return "amber"; // unknown -> neutral
+  if (p == null) return "amber";
   if (p <= 75) return "green";
   if (p <= 90) return "amber";
   return "red";

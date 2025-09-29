@@ -30,8 +30,7 @@ namespace Backend.Infrastructure.Repositories
             {
                 if (string.IsNullOrWhiteSpace(dto.Barcode) || dto.Quantity <= 0)
                     return Fail<AddMealItemResponseDto>("Invalid payload");
-
-                // Food must exist in DB (controller should call OFF refresh first)
+                
                 var food = await _dbContext.Set<Food>().FirstOrDefaultAsync(f => f.Barcode == dto.Barcode);
                 if (food is null) return Fail<AddMealItemResponseDto>("Food not found.");
                 
@@ -47,14 +46,12 @@ namespace Backend.Infrastructure.Repositories
                     _ => 100m
                 };
                 decimal grams = baseGrams * (decimal)dto.Quantity;
-
-                // Create a new Meal (simple flow)
+                
                 var when = dto.ConsumedAtUtc ?? DateTime.UtcNow;
                 var meal = new Meal { UserId = userId, MealType = dto.MealType, ConsumedAtUtc = when };
                 _dbContext.Meal.Add(meal);
                 await _dbContext.SaveChangesAsync();
-
-                // Compute totals from per-100g
+                
                 var scale = grams / 100m;
                 int kcal = (int)Math.Round(scale * (food.EnergyKcal100G ?? 0));
                 int p = (int)Math.Round(scale * (food.ProteinG100G ?? 0));
@@ -67,7 +64,6 @@ namespace Backend.Infrastructure.Repositories
                     FoodId = food.Id,
                     QuantityGrams = grams,
 
-                    // precomputed totals
                     ProteinG = p, CarbsG = c, FatG = f, CaloriesKcal = kcal,
 
                     DisplayName = !string.IsNullOrWhiteSpace(food.ProductName) ? food.ProductName
@@ -147,10 +143,10 @@ namespace Backend.Infrastructure.Repositories
             try
             {
                 var today = DateOnly.FromDateTime(DateTime.UtcNow);
-                var fromDate = today.AddDays(-days + 1); // inclusive
+                var fromDate = today.AddDays(-days + 1); 
 
                 var startUtc = fromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-                var endUtc = today.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc); // exclusive
+                var endUtc = today.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc); 
 
                 var items = (await _dbContext.MealItem
                         .Where(i => i.Meal.UserId == userId &&
@@ -265,15 +261,11 @@ namespace Backend.Infrastructure.Repositories
                     return Fail<MealItemForDayDto>("Auth Issue.");
                 }
 
-                // Validate quantity
                 if (updateMealItemRequestDto.Quantity <= 0)
                     return Fail<MealItemForDayDto>("Quantity must be greater than zero.");
-
-                // Normalize unit (accepts g/gram/grams/1g, 100g, serving)
+                
                 var unit = (updateMealItemRequestDto.Unit ?? "g").Trim().ToLowerInvariant();
-
-                // Resolve grams from unit + quantity
-
+                
                 decimal grams;
                 if (unit == "1g")
                 {
@@ -281,12 +273,10 @@ namespace Backend.Infrastructure.Repositories
                 }
                 else if (unit == "100g")
                 {
-                    // multiples of 100g
                     grams = 100m * (decimal)updateMealItemRequestDto.Quantity;
                 }
                 else if (unit == "serving")
                 {
-                    // serving(s) * serving size in grams
                     if (item.Food.ServingSizeG is null)
                         return Fail<MealItemForDayDto>("Serving size not available. Use unit 'g' or '100g'.");
 
@@ -294,16 +284,14 @@ namespace Backend.Infrastructure.Repositories
                 }
                 else
                 {
-                    // default to 100g behaviour
                     grams = 100m * (decimal)updateMealItemRequestDto.Quantity;
                 }
-
-                // --- Scale existing stored totals by grams ratio (simple + predictable) ---
+                
                 var oldGrams = item.QuantityGrams;
 
-                if (oldGrams <= 0) oldGrams = grams; // safety: avoid divide-by-zero for legacy rows
+                if (oldGrams <= 0) oldGrams = grams; 
 
-                var ratio = grams / oldGrams; // e.g., 40g->50g => 1.25 (increase 25%)
+                var ratio = grams / oldGrams;
 
                 item.QuantityGrams = grams;
                 item.CaloriesKcal = (int)Math.Round(item.CaloriesKcal * ratio);

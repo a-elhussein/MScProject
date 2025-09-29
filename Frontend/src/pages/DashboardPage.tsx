@@ -53,7 +53,6 @@ type MealsTotalsResponse = AppResponse<{
     totals: MacroRec;
 }>;
 
-/** small helpers */
 function fmt(n: number) {
     return new Intl.NumberFormat().format(n);
 }
@@ -73,7 +72,6 @@ function todayDateOnly() {
     return new Date().toISOString().split("T")[0];
 }
 
-/** ---------- inline dialog just for this page ---------- */
 type ProfileDialogProps = {
     open: boolean;
     onClose: () => void;
@@ -259,7 +257,6 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
     );
 }
 
-/** ---------- main Dashboard ---------- */
 export default function DashboardPage() {
     const [profileOpen, setProfileOpen] = useState(false);
     const [overrideOpen, setOverrideOpen] = useState(false);
@@ -350,11 +347,11 @@ export default function DashboardPage() {
             {!isAdmin && !loading && !macros && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Finish setup to get your daily targets</CardTitle>
+                        <CardTitle>Finish Setup To Get Your Daily Targets</CardTitle>
                     </CardHeader>
                     <CardContent className="flex items-center justify-between gap-4">
                         <p className="text-sm text-muted-foreground">
-                            We couldn’t find your macro recommendations. Complete your profile to calculate them.
+                             Complete Your Profile To Calculate Your Macros.
                         </p>
                         <Button onClick={() => setProfileOpen(true)}>Complete profile</Button>
                     </CardContent>
@@ -369,11 +366,11 @@ export default function DashboardPage() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button size="icon" variant="ghost" onClick={() => setOverrideOpen(true)}>
-                                <span className="sr-only">Edit macros</span>
+                                <span className="sr-only">Edit Macros</span>
                                 <PencilLine className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent side="top">Edit macros</TooltipContent>
+                            <TooltipContent side="top">Edit Macros</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                     </CardHeader>
@@ -400,7 +397,7 @@ export default function DashboardPage() {
                             </div>
                         )}
                         {!loading && !macros && (
-                            <p className="text-sm text-muted-foreground">No recommendation yet.</p>
+                            <p className="text-sm text-muted-foreground">No Recommendation Yet.</p>
                         )}
                     </CardContent>
                 </Card>
@@ -432,7 +429,7 @@ export default function DashboardPage() {
                             </div>
                         )}
                         {!loading && !consumed && (
-                            <p className="text-sm text-muted-foreground">No meals logged today.</p>
+                            <p className="text-sm text-muted-foreground">No Meals Logged Today.</p>
                         )}
                     </CardContent>
                 </Card>

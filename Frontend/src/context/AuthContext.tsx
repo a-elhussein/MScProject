@@ -125,7 +125,7 @@ useEffect(() => {
             localStorage.removeItem("token");
             sessionStorage.removeItem("token");
         } catch {
-            // Intentionally ignore storage errors (e.g., Safari private mode)
+            // Intentionally ignore storage errors
         }
 
         delete api.defaults.headers.common["Authorization"];

@@ -71,13 +71,14 @@ export default function LogPage() {
             await api.delete(`/api/Meals/items/${mealItemId}`);
         },
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["mealItems", selectedDate] });
-            qc.invalidateQueries({ queryKey: ["mealsTotals", selectedDate] });
+            qc.invalidateQueries({ queryKey: ["mealItems", dateStr] });
+            qc.invalidateQueries({ queryKey: ["mealsTotals", dateStr] });
         },
     });
 
     async function handleAdded() {
-        qc.invalidateQueries({ queryKey: ["mealItems", selectedDate] });
+        qc.invalidateQueries({ queryKey: ["mealItems", dateStr] });
+        qc.refetchQueries({ queryKey: ["mealItems", dateStr], type: "active" });
         qc.invalidateQueries({ queryKey: ["gamification"] });
     }
 
@@ -115,7 +116,7 @@ export default function LogPage() {
                         </CardHeader>
                         <CardContent className="grid gap-3">
                             {items.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center">Nothing logged yet.</p>
+                                <p className="text-sm text-muted-foreground text-center">Nothing Logged Yet.</p>
                             ) : (
                                 <ul className="divide-y divide-border">
                                   {items.map((it) => (
@@ -190,7 +191,7 @@ export default function LogPage() {
                             )}
 
                             <div className="pt-2">
-                                <Button size="sm" onClick={() => setAddOpen(mt)}>Add food</Button>
+                                <Button size="sm" onClick={() => setAddOpen(mt)}>Add Food</Button>
                             </div>
                         </CardContent>
                     </Card>

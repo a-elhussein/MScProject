@@ -83,19 +83,15 @@ function tone(label: "green" | "amber" | "red") {
 export default function AddFoodByBarcode({open, onClose, onAdded, mealType}: Props) {
     const qc = useQueryClient();
 
-    // form
     const [barcode, setBarcode] = useState("");
     const [unit, setUnit] = useState<"100g" | "serving" | "1g">("100g");
     const [quantity, setQuantity] = useState<number | "">("");
 
-    // camera
     const [scanOpen, setScanOpen] = useState(false);
 
-    // results
     const [foodBase, setFoodBase] = useState<FoodBase | null>(null);
     const [impact, setImpact] = useState<ImpactData | null>(null);
 
-    // --- Helpers
     const unitOptions = useMemo(() => {
         const opts: Array<{ value: "100g" | "serving" | "1g"; label: string }> = [
             {value: "100g", label: "100 g"},
