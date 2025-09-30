@@ -117,7 +117,6 @@ useEffect(() => {
     };
 
     const logout = () => {
-        // clear auth state
         setUser(null);
         setUserProfile(null);
 

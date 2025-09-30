@@ -240,7 +240,7 @@ export default function EditMealItemDialog({ open, item, onClose }: Props) {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["mealItems"] });
             qc.invalidateQueries({ queryKey: ["mealsTotals", "today"] });
-            qc.refetchQueries({ queryKey: ["mealsTotals", "today"], type: "active" }); // optional immediate refresh
+            qc.refetchQueries({ queryKey: ["mealsTotals", "today"], type: "active" });
             onClose();
         },
     });
