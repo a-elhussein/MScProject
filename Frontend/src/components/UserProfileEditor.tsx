@@ -89,7 +89,7 @@ export default function UserProfileEditor() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Height (cm)</label>
+        <label className="block text-sm font-medium">Height (50-300 cm) </label>
         <input
           type="number"
           value={profile?.heightCm ?? data.heightCm}
@@ -99,7 +99,7 @@ export default function UserProfileEditor() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Weight (kg)</label>
+        <label className="block text-sm font-medium">Weight (20-300 kg) </label>
         <input
           type="number"
           value={profile?.weightKg ?? data.weightKg}

@@ -158,7 +158,7 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-1">
-                            <label className="text-sm">Height (cm)</label>
+                            <label className="text-sm">Height (50-300 cm) </label>
                             <Input
                                 type="number"
                                 inputMode="numeric"
@@ -172,7 +172,7 @@ function ProfileDialog({open, onClose, onSaved}: ProfileDialogProps) {
                             />
                         </div>
                         <div className="grid gap-1">
-                            <label className="text-sm">Weight (kg)</label>
+                            <label className="text-sm">Weight (20-300 kg) </label>
                             <Input
                                 type="number"
                                 inputMode="numeric"

@@ -247,8 +247,8 @@ public class OpenFoodService : IOpenFoodFactsService
 
         string label =
             goal <= 0 ? "green" :
-            pct <= 95 ? "green" :
-            pct <= 100 ? "yellow" : "red";
+            pct >= 90 ? "red" :
+            pct >= 76 ? "amber" : "green";
 
         return new MacroLabel
         {
