@@ -18,7 +18,6 @@ public class TokenRepository:ITokenRepository
     }
     public string CreateJwtToken(ApplicationUser user, List<string> roles)
     {
-        // Add claims to the token
         var claims = new List<Claim>()
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),

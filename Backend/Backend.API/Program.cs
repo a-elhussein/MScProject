@@ -4,27 +4,76 @@ using Backend.API.Models;
 using Backend.Core.Auth;
 using Backend.Core.Models.Domain;
 using Backend.Core.Repositories;
+using Backend.Core.Services;
+using Backend.Core.Settings;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
+using Backend.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.Configure<OpenFoodFactsApiSettings>(
+    builder.Configuration.GetSection("OpenFoodFactsAPI"));
+
+const string FrontendCors = "FrontendCors";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCors, policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "https://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "FoodLabelAPI", Version = "v1" });
+    options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = JwtBearerDefaults.AuthenticationScheme
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                },
+                Scheme = "Oauth2",
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+});
 
 builder.Services.AddDbContext<BackendDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
 
 builder.Services.AddIdentityCore<ApplicationUser>()
@@ -33,8 +82,15 @@ builder.Services.AddIdentityCore<ApplicationUser>()
     .AddEntityFrameworkStores<BackendDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IUserRepository,UserRepository>();
-builder.Services.AddScoped<ITokenRepository,TokenRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IMacroRecommendationRepository, MacroRecommendationRepository>();
+builder.Services.AddHttpClient<IOpenFoodFactsService, OpenFoodService>();
+builder.Services.AddScoped<IMealRepository, MealRepository>();
+builder.Services.AddScoped<IFoodRepository, FoodRepository>();
+builder.Services.AddScoped<IGamificationRepository, GamificationRepository>();
+builder.Services.AddScoped<IGamificationService, GamificationService>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -71,7 +127,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors(FrontendCors);
+
 app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -60,7 +60,7 @@ namespace Backend.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            IsActive = 1,
+                            IsActive = 0,
                             IsDeleted = 0,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
@@ -68,7 +68,7 @@ namespace Backend.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            IsActive = 1,
+                            IsActive = 0,
                             IsDeleted = 0,
                             Name = "User",
                             NormalizedName = "USER"
@@ -146,6 +146,279 @@ namespace Backend.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Food", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Brand")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("CarbsG100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("EnergyKcal100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("FatG100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ProductName")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("ProteinG100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("ServingSizeG")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Signature")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Barcode")
+                        .IsUnique();
+
+                    b.ToTable("Food");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Gamification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CurrentStreak")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("LastMealLogDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Xp")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Gamification");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.MacroRecommendation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CaloriesKcal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CarbsG")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("FatG")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProteinG")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MacroRecommendation");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Meal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ConsumedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MealType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Meal");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.MealItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CaloriesKcal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CarbsG")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("CarbsG100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("EnergyKcal100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("FatG")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("FatG100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("FoodId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MealId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProteinG")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ProteinG100G")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("QuantityGrams")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("ServingSizeG")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodId");
+
+                    b.HasIndex("MealId");
+
+                    b.ToTable("MealItem");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.UserProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActivityLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Goal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HeightCm")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Sex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UnitPreference")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("WeightKg")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserProfile");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -251,6 +524,71 @@ namespace Backend.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Backend.Core.Models.Domain.Gamification", b =>
+                {
+                    b.HasOne("Backend.Core.Models.Domain.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.MacroRecommendation", b =>
+                {
+                    b.HasOne("Backend.Core.Models.Domain.UserProfile", "UserProfile")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .HasPrincipalKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Meal", b =>
+                {
+                    b.HasOne("Backend.Core.Models.Domain.UserProfile", "UserProfile")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .HasPrincipalKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.MealItem", b =>
+                {
+                    b.HasOne("Backend.Core.Models.Domain.Food", "Food")
+                        .WithMany("MealItems")
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Core.Models.Domain.Meal", "Meal")
+                        .WithMany("Items")
+                        .HasForeignKey("MealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Food");
+
+                    b.Navigation("Meal");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.UserProfile", b =>
+                {
+                    b.HasOne("Backend.Core.Models.Domain.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Backend.Core.Models.Domain.ApplicationRole", null)
@@ -300,6 +638,16 @@ namespace Backend.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Food", b =>
+                {
+                    b.Navigation("MealItems");
+                });
+
+            modelBuilder.Entity("Backend.Core.Models.Domain.Meal", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

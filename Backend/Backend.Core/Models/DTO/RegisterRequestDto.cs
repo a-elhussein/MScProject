@@ -11,5 +11,6 @@ public class RegisterRequestDto
     public string Email { get; set; }
     [Required]
     [DataType(DataType.Password)]
+    [StringLength(64, MinimumLength = 8)]
     public string Password { get; set; }
 }
