@@ -2,8 +2,6 @@
 
 A fullstack web application that helps users make faster and smarter nutrition decisions by analysing food products against personalised dietary goals.
 
-🚀 Live Demo: (Link will be added soon!) 
-
 ---
 
 ## Overview
