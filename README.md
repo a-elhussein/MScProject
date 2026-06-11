@@ -116,7 +116,7 @@ This project focuses on **decision-making**, not just tracking, helping users un
 ## Running Locally
 
 ### 1. Clone the repository
-git clone https://github.com/a-elhussein/MScProject.git![Uploading SC3.png…]()
+git clone https://github.com/a-elhussein/MScProject.git
 
 cd MScProject
 
