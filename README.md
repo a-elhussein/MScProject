@@ -31,9 +31,14 @@ Instead of just displaying calories and macros, the system evaluates how a food 
 6. A colour-coded result is shown:
 - **Green** → within target  
 - **Amber** → approaching limit  
-- **Red** → exceeding target  
+- **Red** → exceeding target
+
+  <img width="834" height="710" alt="SC1" src="https://github.com/user-attachments/assets/bbb6d40f-cf68-4c45-9209-82267347020f" />
+
 
 <img width="1504" height="959" alt="SC6" src="https://github.com/user-attachments/assets/79d35c66-1a1c-4a92-bb85-f0e16e54df07" />
+
+<img width="1524" height="957" alt="SC7" src="https://github.com/user-attachments/assets/7df1e28d-dd06-4b46-88c3-d813920f683e" />
 
 ---
 
@@ -53,8 +58,6 @@ Inspired by UK nutrition labels, but adapted to be:
 - personalised
 - goal-driven
 - real-time
-
-<img width="1524" height="957" alt="SC7" src="https://github.com/user-attachments/assets/7df1e28d-dd06-4b46-88c3-d813920f683e" />
 
 ---
 
